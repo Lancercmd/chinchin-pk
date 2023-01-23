@@ -19,6 +19,7 @@ def message_processor(message: str, qq: int, group: int, at_qq: Optional[int] = 
     """
         main entry
         TODO：打胶 cd
+        TODO: 看别人牛子（ e.g. 看他牛子 @user )
     """
     message = message.strip()
 
