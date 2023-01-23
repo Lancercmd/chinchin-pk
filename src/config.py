@@ -1,7 +1,11 @@
 import os
-import ujson as json
 import random
 import utils
+
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 config_file_path = os.path.join(os.path.dirname(__file__), 'config.json')
 cache = None

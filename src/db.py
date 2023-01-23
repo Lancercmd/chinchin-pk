@@ -1,7 +1,11 @@
-import ujson as json
 import os
 import utils
 import config
+
+try:
+    import ujson as json
+except ImportError:
+    import json
 
 """
 TODO: use sqlite instead json
