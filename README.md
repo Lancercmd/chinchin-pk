@@ -4,9 +4,9 @@
 
 ### 示例
 
-<details><summary>展开查看功能测试</summary>
+<details><summary>展开查看功能测试示例</summary>
 
-<pre style="max-height: 300px"><code>------查牛子信息------
+<pre><code>------查牛子信息------
 【牛子信息】
 长度: 8.75厘米
 注册时间: 21:11
