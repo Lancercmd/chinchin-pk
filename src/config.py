@@ -101,3 +101,12 @@ def get_lock_punish_with_strong_person_value():
         min + (max - min) * random.random(),
         to_number=True
     )
+
+
+def get_glue_self_punish_value():
+    min = get_config('glue_self_negative_min')
+    max = get_config('glue_self_negative_max')
+    return utils.fixed_two_decimal_digits(
+        min + (max - min) * random.random(),
+        to_number=True
+    )

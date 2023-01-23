@@ -235,17 +235,29 @@ def entry_glue(qq: int, group: int):
                           utils.join(message_arr, '\n')
                           )
         return
-    plus_value = config.get_glue_plus_value()
-    db.length_increase(qq, plus_value)
     db.record_time(qq, 'glueing_time')
     db.count_glue_daily(qq)
-    message_arr = [
-        impl.get_at_segment(qq),
-        '牛子对你的付出很满意吗，增加{}厘米'.format(plus_value)
-    ]
-    impl.send_message(qq, group,
-                      utils.join(message_arr, '\n')
-                      )
+    is_glue_failed = config.is_hit('glue_self_negative_prob')
+    if is_glue_failed:
+        punish_value = config.get_glue_self_punish_value()
+        db.length_decrease(qq, punish_value)
+        message_arr = [
+            impl.get_at_segment(qq),
+            '打胶结束，牛子快被冲爆炸了，减小{}厘米'.format(punish_value)
+        ]
+        impl.send_message(qq, group,
+                          utils.join(message_arr, '\n')
+                          )
+    else:
+        plus_value = config.get_glue_plus_value()
+        db.length_increase(qq, plus_value)
+        message_arr = [
+            impl.get_at_segment(qq),
+            '牛子对你的付出很满意吗，增加{}厘米'.format(plus_value)
+        ]
+        impl.send_message(qq, group,
+                          utils.join(message_arr, '\n')
+                          )
 
 
 def entry_pk_with_target(qq: int, group: int, at_qq: int):

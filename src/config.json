@@ -30,6 +30,11 @@
     "glue_plus_min": 0.5,
     "glue_plus_max": 1.5,
 
+    "##glue_self_negative_prob": "打胶自己失败的概率 [0, 1]",
+    "glue_self_negative_prob": 0.2,
+    "glue_self_negative_min": 0.1,
+    "glue_self_negative_max": 0.5,
+
     "##pk_unstable_range": "pk两者牛子相差该值时，pk胜负不稳定，会55开随机决定胜负",
     "pk_unstable_range": 5,
 
