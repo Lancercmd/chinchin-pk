@@ -194,6 +194,18 @@ botoy 插件入口文件 `__init__.py` ，配置如下：
 
 实现 [`src/impl.py`](./src/impl.py) 中的发送消息函数，对接你的 Bot 发送消息函数，请自行实现。
 
+函数签名为：
+
+```python
+def impl_at_segment(qq: int):
+  # 实现 at 部分，可以不实现
+  return nickname or at_msg
+
+def impl_send_message(qq: int, group: int, message: str):
+  # 实际发送的逻辑...
+  return
+```
+
 #### 收
 
 接入 Bot 收消息入口到 [`src/main.py`](./src/main.py) 中的 `message_processor` 函数：
@@ -207,7 +219,11 @@ def message_processor(
   # 来源群组
   group: int,
   # at 了谁，若没 at ，无需传递
-  at_qq: Optional[int] = None
+  at_qq: Optional[int] = None,
+  # 实现 at 消息部分
+  impl_at_segment,
+  # 实现发送消息部分
+  impl_send_message
 ):
   # ...
 ```
