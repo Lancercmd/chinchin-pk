@@ -18,17 +18,11 @@ match_func = create_match_func_factory(fuzzy=True)
 
 @deco.ignore_botself
 @deco.from_these_groups(*groups)
+@deco.these_msgtypes(MsgTypes.TextMsg, MsgTypes.AtMsg)
 async def receive_group_msg(ctx: GroupMsg):
     from_user = ctx.FromUserId
-    content = ctx.Content
     group = ctx.FromGroupId
 
-    if ctx.MsgType == MsgTypes.PicMsg:
-        return
-
-    if not match_func(keywords=keywords, text=content):
-        return
-        
     def impl_at_segment(qq: int):
         return ctx.FromNickName
 
@@ -36,10 +30,13 @@ async def receive_group_msg(ctx: GroupMsg):
         S.bind(ctx).text(message)
         return
 
-    at_data = gp.at(ctx)
-    if at_data:
+    if ctx.MsgType == MsgTypes.AtMsg:
+        at_data = gp.at(ctx)
         # 只对 at 一个人生效
         if len(at_data.UserExt) != 1:
+            return
+        content = at_data.Content.strip()
+        if not match_func(keywords=keywords, text=content):
             return
         target = at_data.UserExt[0].QQUid
         message_processor(
@@ -53,6 +50,9 @@ async def receive_group_msg(ctx: GroupMsg):
         )
         return
     elif ctx.MsgType == MsgTypes.TextMsg:
+        content = ctx.Content
+        if not match_func(keywords=keywords, text=content):
+            return
         message_processor(
             message=content,
             qq=from_user,
