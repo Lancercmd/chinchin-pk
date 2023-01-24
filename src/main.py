@@ -2,6 +2,7 @@ from .db import is_registered, is_lock_daily_limited, create_data, load_data, re
 from .impl import get_at_segment, send_message
 from .utils import create_match_func_factory, join, get_now_time, fixed_two_decimal_digits, date_improve
 from .config import new_chinchin_length, get_config, is_hit, get_lock_me_punish_value, get_lock_punish_with_strong_person_value, get_lock_plus_value, get_glue_self_punish_value, get_glue_plus_value, is_pk_win, get_pk_plus_value, get_pk_punish_value, get_glue_punish_value
+from .cd import CD_Check
 from typing import Optional
 
 KEYWORDS = {
@@ -27,7 +28,6 @@ def message_processor(
 ):
     """
         main entry
-        TODO: 打胶 cd
         TODO: 破解牛子：被破解的 牛子 长度操作 x 100 倍
         TODO: 查牛子排名 （ e.g. 牛子排名 ）
     """
@@ -52,9 +52,7 @@ def message_processor(
             get_at_segment(qq),
             '你还没有牛子！'
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
         return
 
     # 对别人的
@@ -64,9 +62,7 @@ def message_processor(
                 get_at_segment(qq),
                 '对方还没有牛子！'
             ]
-            send_message(qq, group,
-                         join(message_arr, '\n')
-                         )
+            send_message(qq, group, join(message_arr, '\n'))
             return
 
         # pk别人
@@ -96,7 +92,7 @@ def message_processor(
 
 def entry_chinchin(qq: int, group: int):
     if is_registered(qq):
-        user_chinchin_info = internal_get_chinchin_info(qq)
+        user_chinchin_info = ChinchinInternal.internal_get_chinchin_info(qq)
         send_message(qq, group, join(user_chinchin_info, '\n'))
     else:
         new_user = {
@@ -118,83 +114,83 @@ def entry_chinchin(qq: int, group: int):
         create_data(qq, new_user)
 
 
-def internal_get_chinchin_info(qq: int):
-    user_data = load_data(qq)
-    message_arr = [
-        get_at_segment(qq),
-        '【牛子信息】',
-    ]
-    # length
-    message_arr.append(
-        '长度: {}厘米'.format(fixed_two_decimal_digits(
-            user_data.get('length'),
-            to_number=False
-        ))
-    )
-    # locked
-    if user_data.get('locked_time') != DEFAULT_NONE_TIME:
+class ChinchinInternal():
+    @staticmethod
+    def internal_get_chinchin_info(qq: int):
+        user_data = load_data(qq)
+        message_arr = [
+            get_at_segment(qq),
+            '【牛子信息】',
+        ]
+        # length
         message_arr.append(
-            '最近被🔒时间: {}'.format(
-                date_improve(
-                    user_data.get('locked_time')
+            '长度: {}厘米'.format(fixed_two_decimal_digits(
+                user_data.get('length'),
+                to_number=False
+            ))
+        )
+        # locked
+        if user_data.get('locked_time') != DEFAULT_NONE_TIME:
+            message_arr.append(
+                '最近被🔒时间: {}'.format(
+                    date_improve(
+                        user_data.get('locked_time')
+                    )
                 )
             )
-        )
-    # pk
-    if user_data.get('pk_time') != DEFAULT_NONE_TIME:
-        message_arr.append(
-            '最近pk时间: {}'.format(
-                date_improve(
-                    user_data.get('pk_time')
+        # pk
+        if user_data.get('pk_time') != DEFAULT_NONE_TIME:
+            message_arr.append(
+                '最近pk时间: {}'.format(
+                    date_improve(
+                        user_data.get('pk_time')
+                    )
                 )
             )
-        )
-    # pked
-    if user_data.get('pked_time') != DEFAULT_NONE_TIME:
-        message_arr.append(
-            '最近被pk时间: {}'.format(
-                date_improve(
-                    user_data.get('pked_time')
+        # pked
+        if user_data.get('pked_time') != DEFAULT_NONE_TIME:
+            message_arr.append(
+                '最近被pk时间: {}'.format(
+                    date_improve(
+                        user_data.get('pked_time')
+                    )
                 )
             )
-        )
-    # glueing
-    if user_data.get('glueing_time') != DEFAULT_NONE_TIME:
-        message_arr.append(
-            '最近打胶时间: {}'.format(
-                date_improve(
-                    user_data.get('glueing_time')
+        # glueing
+        if user_data.get('glueing_time') != DEFAULT_NONE_TIME:
+            message_arr.append(
+                '最近打胶时间: {}'.format(
+                    date_improve(
+                        user_data.get('glueing_time')
+                    )
                 )
             )
-        )
-    # glued
-    if user_data.get('glued_time') != DEFAULT_NONE_TIME:
-        message_arr.append(
-            '最近被打胶时间: {}'.format(
-                date_improve(
-                    user_data.get('glued_time')
+        # glued
+        if user_data.get('glued_time') != DEFAULT_NONE_TIME:
+            message_arr.append(
+                '最近被打胶时间: {}'.format(
+                    date_improve(
+                        user_data.get('glued_time')
+                    )
                 )
             )
+        # register
+        message_arr.append(
+            '注册时间: {}'.format(date_improve(
+                user_data.get('register_time')
+            ))
         )
-    # register
-    message_arr.append(
-        '注册时间: {}'.format(date_improve(
-            user_data.get('register_time')
-        ))
-    )
-    return message_arr
+        return message_arr
 
 
 def entry_see_chinchin(qq: int, group: int, at_qq: int):
-    target_chinchin_info = internal_get_chinchin_info(at_qq)
+    target_chinchin_info = ChinchinInternal.internal_get_chinchin_info(at_qq)
     msg_text = join(target_chinchin_info, '\n')
     msg_text = msg_text.replace('【牛子信息】', '【对方牛子信息】')
     send_message(qq, group, msg_text)
 
 
 def entry_lock_me(qq: int, group: int):
-    # FIXME: 如果自己被🔒到当日上限，自己就不能🔒自己了，但自己🔒自己的条件也高。
-    #        因为🔒自己回报高，这样会导致强者一直🔒自己，越强，所以还需要一种小概率制裁机制。
     # check limited
     is_today_limited = is_lock_daily_limited(qq)
     if is_today_limited:
@@ -202,9 +198,16 @@ def entry_lock_me(qq: int, group: int):
             get_at_segment(qq),
             '你的牛子今天太累了，改天再来吧！'
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
+        return
+    # check cd
+    is_in_cd = CD_Check.is_lock_in_cd(qq)
+    if is_in_cd:
+        message_arr = [
+            get_at_segment(qq),
+            '歇一会吧，嘴都麻了！'
+        ]
+        send_message(qq, group, join(message_arr, '\n'))
         return
     lock_me_min = get_config('lock_me_chinchin_min')
     user_data = load_data(qq)
@@ -219,20 +222,16 @@ def entry_lock_me(qq: int, group: int):
                 get_at_segment(qq),
                 '你的牛子还不够长，你🔒不着，牛子自尊心受到了伤害，缩短了{}厘米'.format(punish_value)
             ]
-            send_message(qq, group,
-                         join(message_arr, '\n')
-                         )
+            send_message(qq, group, join(message_arr, '\n'))
         else:
             message_arr = [
                 get_at_segment(qq),
                 '你的牛子太小了，还🔒不到'
             ]
-            send_message(qq, group,
-                         join(message_arr, '\n')
-                         )
+            send_message(qq, group, join(message_arr, '\n'))
     else:
-        is_lock_failed = is_hit(
-            'lock_me_negative_prob_with_strong_person')
+        # FIXME: 因为🔒自己回报高，这样会导致强者一直🔒自己，越强，所以需要一种小概率制裁机制。
+        is_lock_failed = is_hit('lock_me_negative_prob_with_strong_person')
         if is_lock_failed:
             punish_value = get_lock_punish_with_strong_person_value()
             length_decrease(qq, punish_value)
@@ -240,9 +239,7 @@ def entry_lock_me(qq: int, group: int):
                 get_at_segment(qq),
                 '你的牛子太长了，没🔒住爆炸了，缩短了{}厘米'.format(punish_value)
             ]
-            send_message(qq, group,
-                         join(message_arr, '\n')
-                         )
+            send_message(qq, group, join(message_arr, '\n'))
         else:
             plus_value = get_lock_plus_value()
             length_increase(qq, plus_value)
@@ -251,9 +248,7 @@ def entry_lock_me(qq: int, group: int):
                 get_at_segment(qq),
                 '🔒的很卖力很舒服，你的牛子增加了{}厘米'.format(plus_value)
             ]
-            send_message(qq, group,
-                         join(message_arr, '\n')
-                         )
+            send_message(qq, group, join(message_arr, '\n'))
 
 
 def entry_glue(qq: int, group: int):
@@ -264,9 +259,16 @@ def entry_glue(qq: int, group: int):
             get_at_segment(qq),
             '牛子快被你冲炸了，改天再来冲吧！'
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
+        return
+    # check cd
+    is_in_cd = CD_Check.is_glue_in_cd(qq)
+    if is_in_cd:
+        message_arr = [
+            get_at_segment(qq),
+            '你刚打了一胶，歇一会吧！'
+        ]
+        send_message(qq, group, join(message_arr, '\n'))
         return
     record_time(qq, 'glueing_time')
     count_glue_daily(qq)
@@ -278,9 +280,7 @@ def entry_glue(qq: int, group: int):
             get_at_segment(qq),
             '打胶结束，牛子快被冲爆炸了，减小{}厘米'.format(punish_value)
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
     else:
         plus_value = get_glue_plus_value()
         length_increase(qq, plus_value)
@@ -288,9 +288,7 @@ def entry_glue(qq: int, group: int):
             get_at_segment(qq),
             '牛子对你的付出很满意吗，增加{}厘米'.format(plus_value)
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
 
 
 def entry_pk_with_target(qq: int, group: int, at_qq: int):
@@ -300,20 +298,25 @@ def entry_pk_with_target(qq: int, group: int, at_qq: int):
             get_at_segment(qq),
             '你不能和自己的牛子进行较量！'
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
         return
     # check limited
     is_today_limited = is_pk_daily_limited(qq)
     if is_today_limited:
         message_arr = [
             get_at_segment(qq),
+            '战斗太多次牛子要虚脱了，改天再来吧！'
+        ]
+        send_message(qq, group, join(message_arr, '\n'))
+        return
+    # check cd
+    is_in_cd = CD_Check.is_pk_in_cd(qq)
+    if is_in_cd:
+        message_arr = [
+            get_at_segment(qq),
             '牛子刚结束战斗，歇一会吧！'
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
         return
     target_data = load_data(at_qq)
     user_data = load_data(qq)
@@ -339,9 +342,7 @@ def entry_pk_with_target(qq: int, group: int, at_qq: int):
             'pk成功了，对面牛子不值一提，你的是最棒的，牛子获得自信增加了{}厘米，对面牛子减小了{}厘米'.format(
                 user_plus_value, target_punish_value)
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
     else:
         user_punish_value = get_pk_punish_value()
         target_plus_value = get_pk_plus_value()
@@ -352,9 +353,7 @@ def entry_pk_with_target(qq: int, group: int, at_qq: int):
             'pk失败了，在对面牛子的阴影笼罩下，你的牛子减小了{}厘米，对面牛子增加了{}厘米'.format(
                 user_punish_value, target_plus_value)
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
 
 
 def entry_lock_with_target(qq: int, group: int, at_qq: int):
@@ -370,9 +369,16 @@ def entry_lock_with_target(qq: int, group: int, at_qq: int):
             get_at_segment(qq),
             '别🔒了，要口腔溃疡了，改天再🔒吧！'
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
+        return
+    # check cd
+    is_in_cd = CD_Check.is_lock_in_cd(qq)
+    if is_in_cd:
+        message_arr = [
+            get_at_segment(qq),
+            '歇一会吧，嘴都麻了！'
+        ]
+        send_message(qq, group, join(message_arr, '\n'))
         return
     target_plus_value = get_lock_plus_value()
     length_increase(at_qq, target_plus_value)
@@ -382,9 +388,7 @@ def entry_lock_with_target(qq: int, group: int, at_qq: int):
         get_at_segment(qq),
         '🔒的很卖力很舒服，对方牛子增加了{}厘米'.format(target_plus_value)
     ]
-    send_message(qq, group,
-                 join(message_arr, '\n')
-                 )
+    send_message(qq, group, join(message_arr, '\n'))
 
 
 def entry_glue_with_target(qq: int, group: int, at_qq: int):
@@ -397,11 +401,18 @@ def entry_glue_with_target(qq: int, group: int, at_qq: int):
     if is_today_limited:
         message_arr = [
             get_at_segment(qq),
+            '你今天帮太多人打胶了，改天再来吧！ '
+        ]
+        send_message(qq, group, join(message_arr, '\n'))
+        return
+    # check cd
+    is_in_cd = CD_Check.is_glue_in_cd(qq)
+    if is_in_cd:
+        message_arr = [
+            get_at_segment(qq),
             '你刚打了一胶，歇一会吧！'
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
         return
     record_time(at_qq, 'glued_time')
     count_glue_daily(qq)
@@ -413,9 +424,7 @@ def entry_glue_with_target(qq: int, group: int, at_qq: int):
             get_at_segment(qq),
             '对方牛子快被大家冲坏了，减小{}厘米'.format(target_punish_value)
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))
     else:
         target_plus_value = get_glue_plus_value()
         length_increase(at_qq, target_plus_value)
@@ -423,6 +432,4 @@ def entry_glue_with_target(qq: int, group: int, at_qq: int):
             get_at_segment(qq),
             '你的打胶让对方牛子感到很舒服，对方牛子增加{}厘米'.format(target_plus_value)
         ]
-        send_message(qq, group,
-                     join(message_arr, '\n')
-                     )
+        send_message(qq, group, join(message_arr, '\n'))

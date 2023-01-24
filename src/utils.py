@@ -9,6 +9,14 @@ def arrow_get(time: str):
     return arrow.get(time, tzinfo='Asia/Shanghai')
 
 
+def get_arrow_gap_timestamp(time_1: str, time_2: str):
+    return arrow_get(time_1).int_timestamp - arrow_get(time_2).int_timestamp
+
+
+def get_arrow_gap_minutes(time_1: str, time_2: str):
+    return get_arrow_gap_timestamp(time_1, time_2) / 60
+
+
 def join(arr: list, sep: str = ''):
     # filter all empty value
     arr = list(filter(lambda x: x, arr))

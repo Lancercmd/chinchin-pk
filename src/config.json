@@ -7,13 +7,22 @@
     "lock_me_chinchin_min": 20,
 
     "##lock_daily_max": "每天🔒的上限次数，包括🔒自己和别人",
-    "lock_daily_max": 3,
+    "lock_daily_max": 6,
+    "##cd_trigger_lock": "一旦🔒过了 count ( [0, 1] ) 百分比的数量，之后每次🔒就需要等 time 分钟的 cd",
+    "cd_trigger_lock_time": 60,
+    "cd_trigger_lock_rate": 0.5,
 
     "##pk_daily_max": "每天pk的上限次数，包括pk自己和别人",
-    "pk_daily_max": 3,
+    "pk_daily_max": 6,
+    "##cd_trigger_pk": "一旦pk过了 count ( [0, 1] ) 百分比的数量，之后每次pk就需要等 time 分钟的 cd",
+    "cd_trigger_pk_time": 60,
+    "cd_trigger_pk_rate": 0.5,
 
     "##glue_daily": "每天打胶的上限次数，包括打胶自己和别人",
-    "glue_daily_max": 3,
+    "glue_daily_max": 6,
+    "##cd_trigger_glue": "一旦打胶过了 count ( [0, 1] ) 百分比的数量，之后每次打胶就需要等 time 分钟的 cd",
+    "cd_trigger_glue_time": 60,
+    "cd_trigger_glue_rate": 0.5,
 
     "##lock_me_negative_prob": "🔒自己长度不够的处罚几率 [0, 1]",
     "lock_me_negative_prob": 0.7,
