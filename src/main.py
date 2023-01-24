@@ -5,11 +5,11 @@ from typing import Optional
 import config
 
 KEYWORDS = {
-    'chinchin': '牛子',
-    'pk': 'pk',
-    'lock_me': '🔒我',
-    'lock': '🔒',
-    'glue': '打胶'
+    'chinchin': ['牛子'],
+    'pk': ['pk'],
+    'lock_me': ['🔒我'],
+    'lock': ['🔒', 'suo', '嗦', '锁'],
+    'glue': ['打胶']
 }
 
 DEFAULT_NONE_TIME = '2000-01-01 00:00:00'
@@ -18,13 +18,15 @@ DEFAULT_NONE_TIME = '2000-01-01 00:00:00'
 def message_processor(message: str, qq: int, group: int, at_qq: Optional[int] = None):
     """
         main entry
-        TODO：打胶 cd
+        TODO: 打胶 cd
         TODO: 看别人牛子（ e.g. 看他牛子 @user )
+        TODO: 破解牛子：被破解的 牛子 长度操作 x 100 倍
+        TODO: 查牛子排名 （ e.g. 牛子排名 ）
     """
     message = message.strip()
 
     # 查询牛子信息
-    if message == KEYWORDS.get('chinchin'):
+    if utils.is_keyword_matched(KEYWORDS.get('chinchin'), message):
         return entry_chinchin(qq, group)
 
     # 下面的逻辑必须有牛子
@@ -51,23 +53,23 @@ def message_processor(message: str, qq: int, group: int, at_qq: Optional[int] = 
             return
 
         # pk别人
-        if message == KEYWORDS.get('pk'):
+        if utils.is_keyword_matched(KEYWORDS.get('pk'), message):
             return entry_pk_with_target(qq, group, at_qq)
 
         # 🔒别人
-        if message == KEYWORDS.get('lock'):
+        if utils.is_keyword_matched(KEYWORDS.get('lock'), message):
             return entry_lock_with_target(qq, group, at_qq)
 
         # 打胶别人
-        if message == KEYWORDS.get('glue'):
+        if utils.is_keyword_matched(KEYWORDS.get('glue'), message):
             return entry_glue_with_target(qq, group, at_qq)
     else:
         # 🔒自己
-        if message == KEYWORDS.get('lock_me'):
+        if utils.is_keyword_matched(KEYWORDS.get('lock_me'), message):
             return entry_lock_me(qq, group)
 
         # 自己打胶
-        if message == KEYWORDS.get('glue'):
+        if utils.is_keyword_matched(KEYWORDS.get('glue'), message):
             return entry_glue(qq, group)
 
 

@@ -31,3 +31,10 @@ def fixed_two_decimal_digits(num: int, to_number: bool = False):
 
 def is_date_outed(time: str):
     return arrow.get(time).format('YYYY-MM-DD') != arrow.now().format('YYYY-MM-DD')
+
+
+def is_keyword_matched(keywords: list, text: str):
+    for keyword in keywords:
+        if text == keyword:
+            return True
+    return False
