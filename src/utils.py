@@ -1,6 +1,14 @@
 import arrow
 
 
+def arrow_now():
+    return arrow.now(tz='Asia/Shanghai')
+
+
+def arrow_get(time: str):
+    return arrow.get(time, tzinfo='Asia/Shanghai')
+
+
 def join(arr: list, sep: str = ''):
     # filter all empty value
     arr = list(filter(lambda x: x, arr))
@@ -8,15 +16,15 @@ def join(arr: list, sep: str = ''):
 
 
 def get_now_time():
-    return arrow.now().format('YYYY-MM-DD HH:mm:ss')
+    return arrow_now().format('YYYY-MM-DD HH:mm:ss')
 
 
 def date_improve(time: str):
-    ins = arrow.get(time)
-    is_today = (ins.format('YYYY-MM-DD') == arrow.now().format('YYYY-MM-DD'))
+    ins = arrow_get(time)
+    is_today = (ins.format('YYYY-MM-DD') == arrow_now().format('YYYY-MM-DD'))
     if is_today:
         return ins.format('HH:mm')
-    is_this_year = (ins.format('YYYY') == arrow.now().format('YYYY'))
+    is_this_year = (ins.format('YYYY') == arrow_now().format('YYYY'))
     if is_this_year:
         return ins.format('MM-DD HH:mm')
     return ins.format('YYYY-MM-DD HH:mm')
@@ -30,7 +38,7 @@ def fixed_two_decimal_digits(num: int, to_number: bool = False):
 
 
 def is_date_outed(time: str):
-    return arrow.get(time).format('YYYY-MM-DD') != arrow.now().format('YYYY-MM-DD')
+    return arrow_get(time).format('YYYY-MM-DD') != arrow_now().format('YYYY-MM-DD')
 
 
 def create_match_func_factory(fuzzy: bool = False):
