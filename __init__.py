@@ -24,7 +24,7 @@ def receive_group_msg(ctx: GroupMsg):
     content = ctx.Content
     group = ctx.FromGroupId
 
-    if not match_func(keywords=keywords, message=content):
+    if not match_func(keywords=keywords, text=content):
         return
         
     def impl_at_segment(qq: int):
