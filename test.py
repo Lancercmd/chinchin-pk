@@ -1,11 +1,14 @@
 import os
 from src.db import load_data, write_data
-from src.main import message_processor
+from src.main import message_processor, KEYWORDS
+from src.utils import get_object_values
 
 user_1 = 123456789
 user_2 = 987654321
 group = 123
 
+k = get_object_values(KEYWORDS)
+print(k)
 
 class bcolors:
     HEADER = '\033[95m'

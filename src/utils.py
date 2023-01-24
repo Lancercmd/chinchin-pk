@@ -33,7 +33,7 @@ def is_date_outed(time: str):
     return arrow.get(time).format('YYYY-MM-DD') != arrow.now().format('YYYY-MM-DD')
 
 
-def create_match_func_factory(message: str, fuzzy: bool = False):
+def create_match_func_factory(fuzzy: bool = False):
     def is_keyword_matched(keywords: list, text: str):
         for keyword in keywords:
             if fuzzy:
@@ -44,3 +44,14 @@ def create_match_func_factory(message: str, fuzzy: bool = False):
                     return True
         return False
     return is_keyword_matched
+
+
+def get_object_values(obj: dict):
+    vs = obj.values()
+    ret = []
+    for v in vs:
+        if isinstance(v, list):
+            ret.extend(v)
+        else:
+            ret.append(v)
+    return ret

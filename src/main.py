@@ -32,7 +32,7 @@ def message_processor(
         TODO: 查牛子排名 （ e.g. 牛子排名 ）
     """
     message = message.strip()
-    match_func = create_match_func_factory(message, fuzzy=fuzzy_match)
+    match_func = create_match_func_factory(fuzzy=fuzzy_match)
 
     # hack impl
     if impl_at_segment:
