@@ -113,5 +113,8 @@ def test2():
     wrap(user_1, '打胶', user_2, comment='user 1 打胶 user 2 max')
     wrap(user_1, '牛子', comment='user 1 查牛子信息')
 
+    # 看别人牛子
+    wrap(user_1, '看他牛子', user_2, comment='user 1 查 user 2 牛子信息')
+    wrap(user_1, '看他牛子', comment='None')
 
 test2()

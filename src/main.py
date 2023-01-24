@@ -9,7 +9,8 @@ KEYWORDS = {
     'pk': ['pk'],
     'lock_me': ['🔒我'],
     'lock': ['🔒', 'suo', '嗦', '锁'],
-    'glue': ['打胶']
+    'glue': ['打胶'],
+    'see_chinchin': ['看他牛子']
 }
 
 DEFAULT_NONE_TIME = '2000-01-01 00:00:00'
@@ -19,7 +20,6 @@ def message_processor(message: str, qq: int, group: int, at_qq: Optional[int] = 
     """
         main entry
         TODO: 打胶 cd
-        TODO: 看别人牛子（ e.g. 看他牛子 @user )
         TODO: 破解牛子：被破解的 牛子 长度操作 x 100 倍
         TODO: 查牛子排名 （ e.g. 牛子排名 ）
     """
@@ -63,6 +63,10 @@ def message_processor(message: str, qq: int, group: int, at_qq: Optional[int] = 
         # 打胶别人
         if utils.is_keyword_matched(KEYWORDS.get('glue'), message):
             return entry_glue_with_target(qq, group, at_qq)
+
+        # 看别人的牛子
+        if utils.is_keyword_matched(KEYWORDS.get('see_chinchin'), message):
+            return entry_see_chinchin(qq, group, at_qq)
     else:
         # 🔒自己
         if utils.is_keyword_matched(KEYWORDS.get('lock_me'), message):
@@ -75,73 +79,8 @@ def message_processor(message: str, qq: int, group: int, at_qq: Optional[int] = 
 
 def entry_chinchin(qq: int, group: int):
     if db.is_registered(qq):
-        user_data = db.load_data(qq)
-        message_arr = [
-            impl.get_at_segment(qq),
-            '【牛子信息】',
-        ]
-        # length
-        message_arr.append(
-            '长度: {}厘米'.format(utils.fixed_two_decimal_digits(
-                user_data.get('length'),
-                to_number=False
-            ))
-        )
-        # locked
-        if user_data.get('locked_time') != DEFAULT_NONE_TIME:
-            message_arr.append(
-                '最近被🔒时间: {}'.format(
-                    utils.date_improve(
-                        user_data.get('locked_time')
-                    )
-                )
-            )
-        # pk
-        if user_data.get('pk_time') != DEFAULT_NONE_TIME:
-            message_arr.append(
-                '最近pk时间: {}'.format(
-                    utils.date_improve(
-                        user_data.get('pk_time')
-                    )
-                )
-            )
-        # pked
-        if user_data.get('pked_time') != DEFAULT_NONE_TIME:
-            message_arr.append(
-                '最近被pk时间: {}'.format(
-                    utils.date_improve(
-                        user_data.get('pked_time')
-                    )
-                )
-            )
-        # glueing
-        if user_data.get('glueing_time') != DEFAULT_NONE_TIME:
-            message_arr.append(
-                '最近打胶时间: {}'.format(
-                    utils.date_improve(
-                        user_data.get('glueing_time')
-                    )
-                )
-            )
-        # glued
-        if user_data.get('glued_time') != DEFAULT_NONE_TIME:
-            message_arr.append(
-                '最近被打胶时间: {}'.format(
-                    utils.date_improve(
-                        user_data.get('glued_time')
-                    )
-                )
-            )
-        # register
-        message_arr.append(
-            '注册时间: {}'.format(utils.date_improve(
-                user_data.get('register_time')
-            ))
-        )
-        impl.send_message(
-            qq, group,
-            utils.join(message_arr, '\n')
-        )
+        user_chinchin_info = internal_get_chinchin_info(qq)
+        impl.send_message(qq, group, utils.join(user_chinchin_info, '\n'))
     else:
         new_user = {
             'qq': qq,
@@ -160,6 +99,80 @@ def entry_chinchin(qq: int, group: int):
             'locked_time': DEFAULT_NONE_TIME,
         }
         db.create_data(qq, new_user)
+
+
+def internal_get_chinchin_info(qq: int):
+    user_data = db.load_data(qq)
+    message_arr = [
+        impl.get_at_segment(qq),
+        '【牛子信息】',
+    ]
+    # length
+    message_arr.append(
+        '长度: {}厘米'.format(utils.fixed_two_decimal_digits(
+            user_data.get('length'),
+            to_number=False
+        ))
+    )
+    # locked
+    if user_data.get('locked_time') != DEFAULT_NONE_TIME:
+        message_arr.append(
+            '最近被🔒时间: {}'.format(
+                utils.date_improve(
+                    user_data.get('locked_time')
+                )
+            )
+        )
+    # pk
+    if user_data.get('pk_time') != DEFAULT_NONE_TIME:
+        message_arr.append(
+            '最近pk时间: {}'.format(
+                utils.date_improve(
+                    user_data.get('pk_time')
+                )
+            )
+        )
+    # pked
+    if user_data.get('pked_time') != DEFAULT_NONE_TIME:
+        message_arr.append(
+            '最近被pk时间: {}'.format(
+                utils.date_improve(
+                    user_data.get('pked_time')
+                )
+            )
+        )
+    # glueing
+    if user_data.get('glueing_time') != DEFAULT_NONE_TIME:
+        message_arr.append(
+            '最近打胶时间: {}'.format(
+                utils.date_improve(
+                    user_data.get('glueing_time')
+                )
+            )
+        )
+    # glued
+    if user_data.get('glued_time') != DEFAULT_NONE_TIME:
+        message_arr.append(
+            '最近被打胶时间: {}'.format(
+                utils.date_improve(
+                    user_data.get('glued_time')
+                )
+            )
+        )
+    # register
+    message_arr.append(
+        '注册时间: {}'.format(utils.date_improve(
+            user_data.get('register_time')
+        ))
+    )
+    return message_arr
+
+
+def entry_see_chinchin(qq: int, group: int, at_qq: int):
+    target_chinchin_info = internal_get_chinchin_info(at_qq)
+    msg_text = utils.join(target_chinchin_info, '\n')
+    msg_text = msg_text.replace('【牛子信息】', '【对方牛子信息】')
+    impl.send_message(qq, group, msg_text)
 
 
 def entry_lock_me(qq: int, group: int):
