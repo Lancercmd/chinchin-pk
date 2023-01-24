@@ -1,7 +1,7 @@
 from .db import DB
 from .impl import get_at_segment, send_message
 from .utils import create_match_func_factory, join, get_now_time, fixed_two_decimal_digits, date_improve
-from .config import new_chinchin_length, get_config, is_hit, get_lock_me_punish_value, get_lock_punish_with_strong_person_value, get_lock_plus_value, get_glue_self_punish_value, get_glue_plus_value, is_pk_win, get_pk_plus_value, get_pk_punish_value, get_glue_punish_value
+from .config import Config
 from .cd import CD_Check
 from typing import Optional
 
@@ -101,7 +101,7 @@ class Chinchin_info():
         else:
             new_user = {
                 'qq': qq,
-                'length': new_chinchin_length(),
+                'length': Config.new_chinchin_length(),
                 'register_time': get_now_time(),
                 'daily_lock_count': 0,
                 'daily_pk_count': 0,
@@ -217,14 +217,14 @@ class Chinchin_me():
             ]
             send_message(qq, group, join(message_arr, '\n'))
             return
-        lock_me_min = get_config('lock_me_chinchin_min')
+        lock_me_min = Config.get_config('lock_me_chinchin_min')
         user_data = DB.load_data(qq)
         DB.record_time(qq, 'locked_time')
         DB.count_lock_daily(qq)
         if user_data.get('length') < lock_me_min:
-            is_need_punish = is_hit('lock_me_negative_prob')
+            is_need_punish = Config.is_hit('lock_me_negative_prob')
             if is_need_punish:
-                punish_value = get_lock_me_punish_value()
+                punish_value = Config.get_lock_me_punish_value()
                 DB.length_decrease(qq, punish_value)
                 message_arr = [
                     get_at_segment(qq),
@@ -239,9 +239,10 @@ class Chinchin_me():
                 send_message(qq, group, join(message_arr, '\n'))
         else:
             # FIXME: 因为🔒自己回报高，这样会导致强者一直🔒自己，越强，所以需要一种小概率制裁机制。
-            is_lock_failed = is_hit('lock_me_negative_prob_with_strong_person')
+            is_lock_failed = Config.is_hit(
+                'lock_me_negative_prob_with_strong_person')
             if is_lock_failed:
-                punish_value = get_lock_punish_with_strong_person_value()
+                punish_value = Config.get_lock_punish_with_strong_person_value()
                 DB.length_decrease(qq, punish_value)
                 message_arr = [
                     get_at_segment(qq),
@@ -249,7 +250,7 @@ class Chinchin_me():
                 ]
                 send_message(qq, group, join(message_arr, '\n'))
             else:
-                plus_value = get_lock_plus_value()
+                plus_value = Config.get_lock_plus_value()
                 DB.length_increase(qq, plus_value)
                 # TODO: 🔒自己效果有加成
                 message_arr = [
@@ -280,9 +281,9 @@ class Chinchin_me():
             return
         DB.record_time(qq, 'glueing_time')
         DB.count_glue_daily(qq)
-        is_glue_failed = is_hit('glue_self_negative_prob')
+        is_glue_failed = Config.is_hit('glue_self_negative_prob')
         if is_glue_failed:
-            punish_value = get_glue_self_punish_value()
+            punish_value = Config.get_glue_self_punish_value()
             DB.length_decrease(qq, punish_value)
             message_arr = [
                 get_at_segment(qq),
@@ -290,7 +291,7 @@ class Chinchin_me():
             ]
             send_message(qq, group, join(message_arr, '\n'))
         else:
-            plus_value = get_glue_plus_value()
+            plus_value = Config.get_glue_plus_value()
             DB.length_increase(qq, plus_value)
             message_arr = [
                 get_at_segment(qq),
@@ -336,16 +337,16 @@ class Chinchin_with_target():
         offset = user_length - target_length
         offset_abs = abs(offset)
         is_user_win = False
-        if offset_abs < get_config('pk_unstable_range'):
-            is_user_win = is_pk_win()
+        if offset_abs < Config.get_config('pk_unstable_range'):
+            is_user_win = Config.is_pk_win()
         else:
             is_user_win = (offset > 0)
         DB.record_time(qq, 'pk_time')
         DB.record_time(at_qq, 'pked_time')
         DB.count_pk_daily(qq)
         if is_user_win:
-            user_plus_value = get_pk_plus_value()
-            target_punish_value = get_pk_punish_value()
+            user_plus_value = Config.get_pk_plus_value()
+            target_punish_value = Config.get_pk_punish_value()
             DB.length_increase(qq, user_plus_value)
             DB.length_decrease(at_qq, target_punish_value)
             message_arr = [
@@ -355,8 +356,8 @@ class Chinchin_with_target():
             ]
             send_message(qq, group, join(message_arr, '\n'))
         else:
-            user_punish_value = get_pk_punish_value()
-            target_plus_value = get_pk_plus_value()
+            user_punish_value = Config.get_pk_punish_value()
+            target_plus_value = Config.get_pk_plus_value()
             DB.length_decrease(qq, user_punish_value)
             DB.length_increase(at_qq, target_plus_value)
             message_arr = [
@@ -391,7 +392,7 @@ class Chinchin_with_target():
             ]
             send_message(qq, group, join(message_arr, '\n'))
             return
-        target_plus_value = get_lock_plus_value()
+        target_plus_value = Config.get_lock_plus_value()
         DB.length_increase(at_qq, target_plus_value)
         DB.record_time(at_qq, 'locked_time')
         DB.count_lock_daily(qq)
@@ -427,9 +428,9 @@ class Chinchin_with_target():
             return
         DB.record_time(at_qq, 'glued_time')
         DB.count_glue_daily(qq)
-        is_glue_failed = is_hit('glue_negative_prob')
+        is_glue_failed = Config.is_hit('glue_negative_prob')
         if is_glue_failed:
-            target_punish_value = get_glue_punish_value()
+            target_punish_value = Config.get_glue_punish_value()
             DB.length_decrease(at_qq, target_punish_value)
             message_arr = [
                 get_at_segment(qq),
@@ -437,7 +438,7 @@ class Chinchin_with_target():
             ]
             send_message(qq, group, join(message_arr, '\n'))
         else:
-            target_plus_value = get_glue_plus_value()
+            target_plus_value = Config.get_glue_plus_value()
             DB.length_increase(at_qq, target_plus_value)
             message_arr = [
                 get_at_segment(qq),
