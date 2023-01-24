@@ -39,7 +39,7 @@ async def receive_group_msg(ctx: GroupMsg):
     at_data = gp.at(ctx)
     if at_data:
         # 只对 at 一个人生效
-        if len(at_data.UserExt[0]) != 1:
+        if len(at_data.UserExt) != 1:
             return
         target = at_data.UserExt[0].QQUid
         message_processor(
