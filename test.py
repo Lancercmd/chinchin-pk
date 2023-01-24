@@ -1,5 +1,5 @@
 import os
-from src.db import load_data, write_data
+from src.db import DB
 from src.main import message_processor, KEYWORDS
 from src.utils import get_object_values
 
@@ -48,73 +48,89 @@ def test2():
 
     wrap(user_2, '牛子', comment='对方注册')
     wrap(user_2, '牛子', comment='user 2 查牛子信息')
-    wrap(user_2, '打胶', comment='user 2 自己打胶')
-    wrap(user_2, '🔒我', comment='user 2 自己🔒自己')
+    wrap(user_2, '打胶', comment='user 2 自己打胶 l+1')
+    wrap(user_2, '🔒我', comment='user 2 自己🔒自己 s+1')
     wrap(user_2, '牛子', user_1, comment='user 2 查牛子是否短了')
     wrap(user_2, 'pk', comment='None')
     wrap(user_2, '🔒', comment='None')
-    wrap(user_2, '打胶', user_1, comment='user 2 打胶 user 1')
-    wrap(user_2, '🔒', user_1, comment='user 2 🔒 user 1')
-    wrap(user_2, 'pk', user_1, comment='user 2 pk user 1')
+    wrap(user_2, '打胶', user_1, comment='user 2 打胶 user 1 l+2')
+    wrap(user_2, '🔒', user_1, comment='user 2 🔒 user 1 s+2')
+    wrap(user_2, 'pk', user_1, comment='user 2 pk user p+1')
     wrap(user_1, '牛子', user_1, comment='user 1 查牛子是否变了')
 
-    # max
-    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk +2')
-    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk +3')
-    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk +4')
-    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk +5')
-    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk +6')
-    wrap(user_2, '🔒', user_1, comment='user 2 反复 🔒 +2')
-    wrap(user_2, '🔒', user_1, comment='user 2 反复 🔒 +3')
-    wrap(user_2, '🔒', user_1, comment='user 2 反复 🔒 +4')
-    wrap(user_2, '🔒', user_1, comment='user 2 反复 🔒 +5')
-    wrap(user_2, '🔒', user_1, comment='user 2 反复 🔒 +6')
-    wrap(user_2, '打胶', user_1, comment='user 2 反复 打胶 +2')
-    wrap(user_2, '打胶', user_1, comment='user 2 反复 打胶 +3')
-    wrap(user_2, '打胶', user_1, comment='user 2 反复 打胶 +4')
-    wrap(user_2, '打胶', user_1, comment='user 2 反复 打胶 +5')
-    wrap(user_2, '打胶', user_1, comment='user 2 反复 打胶 +6')
+    # cd
+    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk p+2')
+    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk p+3')
+    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk p+4')
+    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk p+5 cd')
+    wrap(user_2, 'pk', user_1, comment='user 2 反复 pk p+6 cd')
+    wrap(user_2, '🔒', user_1, comment='user 2 反复 🔒 s+3')
+    wrap(user_2, '🔒', user_1, comment='user 2 反复 🔒 s+4')
+    wrap(user_2, '🔒', user_1, comment='user 2 反复 🔒 s+5 cd')
+    wrap(user_2, '🔒', user_1, comment='user 2 反复 🔒 s+6 cd')
+    wrap(user_2, '打胶', user_1, comment='user 2 反复 打胶 l+3')
+    wrap(user_2, '打胶', user_1, comment='user 2 反复 打胶 l+4')
+    wrap(user_2, '打胶', user_1, comment='user 2 反复 打胶 l+5 cd')
+    wrap(user_2, '打胶', user_1, comment='user 2 反复 打胶 l+6 cd')
 
     wrap(user_1, '牛子', comment='user 1 查牛子是否变了')
-    wrap(user_1, '打胶', comment='user 1 反复自己打胶 +1')
-    wrap(user_1, '打胶', comment='user 1 反复自己打胶 +2')
-    wrap(user_1, '打胶', comment='user 1 反复自己打胶 +3')
-    wrap(user_1, '打胶', comment='user 1 反复自己打胶 +4')
-    wrap(user_1, '🔒我', comment='user 1 反复自己🔒自己 +1')
-    wrap(user_1, '🔒我', comment='user 1 反复自己🔒自己 +2')
-    wrap(user_1, '🔒我', comment='user 1 反复自己🔒自己 +3')
-    wrap(user_1, '🔒我', comment='user 1 反复自己🔒自己 +4')
+    wrap(user_1, '打胶', comment='user 1 反复自己打胶 l+1')
+    wrap(user_1, '打胶', comment='user 1 反复自己打胶 l+2')
+    wrap(user_1, '打胶', comment='user 1 反复自己打胶 l+3')
+    wrap(user_1, '打胶', comment='user 1 反复自己打胶 l+4')
+    wrap(user_1, '打胶', comment='user 1 反复自己打胶 l+5 cd')
+    wrap(user_1, '🔒我', comment='user 1 反复自己🔒自己 s+1')
+    wrap(user_1, '🔒我', comment='user 1 反复自己🔒自己 s+2')
+    wrap(user_1, '🔒我', comment='user 1 反复自己🔒自己 s+3')
+    wrap(user_1, '🔒我', comment='user 1 反复自己🔒自己 s+4')
+    wrap(user_1, '🔒我', comment='user 1 反复自己🔒自己 s+5 cd')
 
     # self
-    wrap(user_1, 'pk', user_1, 'user 1 pk 自己')
-    wrap(user_1, '🔒', user_1, 'user 1 🔒 自己')
-    wrap(user_1, '打胶', user_1, 'user 1 打胶 自己')
+    wrap(user_1, 'pk', user_1, 'user 1 pk 自己 p+1')
+    wrap(user_1, '🔒', user_1, 'user 1 🔒 自己 s+6 cd')
+    wrap(user_1, '打胶', user_1, 'user 1 打胶 自己 l+6 cd')
 
     # 查信息
     wrap(user_1, '牛子', comment='user 1 查牛子信息')
     wrap(user_2, '牛子', comment='user 2 查牛子信息')
 
     # 隔日
-    data = load_data(user_1)
+    data = DB.load_data(user_1)
     data['latest_daily_lock'] = '2020-01-01 00:00:01'
     data['pked_time'] = '2020-01-01 00:00:01'
-    write_data(user_1, data)
+    DB.write_data(user_1, data)
     wrap(user_1, '牛子', comment='user 1 隔日查牛子信息')
-    wrap(user_1, '🔒我', comment='user 1 🔒自己')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+1')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+2')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+3')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+4')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+5 cd')
 
     # 大额惩罚机制
-    data = load_data(user_1)
+    data = DB.load_data(user_1)
     data['length'] = 25
     data['latest_daily_lock'] = '2020-01-01 00:00:01'
-    write_data(user_1, data)
-    wrap(user_1, '牛子', comment='user 1 查牛子信息')
-    wrap(user_1, '🔒我', comment='user 1 🔒自己 +1')
-    wrap(user_1, '🔒我', comment='user 1 🔒自己 +2')
-    wrap(user_1, '🔒我', comment='user 1 🔒自己 +3')
-    wrap(user_1, '🔒我', comment='user 1 🔒自己 +4 max')
-    wrap(user_1, '🔒', user_2, comment='user 1 🔒别人 max')
+    DB.write_data(user_1, data)
+    wrap(user_1, '牛子', comment='大额惩罚机制 user 1 查牛子信息')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+1')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+2')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+3')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+4')
+    wrap(user_1, '🔒我', comment='user 1 🔒自己 l+5 cd')
+    wrap(user_1, '🔒', user_2, comment='user 1 🔒别人 l+6 cd')
+
+    # max
+    data = DB.load_data(user_1)
+    data['daily_lock_count'] = 6
+    data['daily_glue_count'] = 5
+    data['latest_daily_glue'] = '2023-01-25 01:00:00'
+    data['daily_pk_count'] = 6
+    data['latest_daily_pk'] = '2023-01-25 01:00:00'
+    DB.write_data(user_1, data)
+    wrap(user_1, '🔒', user_2, comment='user 1 🔒 user 2 max')
+    wrap(user_1, '打胶', user_2, comment='user 1 打胶 user 2')
     wrap(user_1, '打胶', user_2, comment='user 1 打胶 user 2 max')
-    wrap(user_1, '牛子', comment='user 1 查牛子信息')
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 max')
 
     # 看别人牛子
     wrap(user_1, '看他牛子', user_2, comment='user 1 查 user 2 牛子信息')

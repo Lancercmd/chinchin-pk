@@ -1,6 +1,6 @@
 import os
 from .utils import get_now_time, is_date_outed, fixed_two_decimal_digits
-from .config import get_config
+from .config import Config
 
 try:
     import ujson as json
@@ -90,7 +90,7 @@ class DB():
         if is_outed:
             cls.reset_daily_count(qq, 'daily_lock_count')
             return False
-        max = get_config('lock_daily_max')
+        max = Config.get_config('lock_daily_max')
         if current_count >= max:
             return True
         return False
@@ -110,7 +110,7 @@ class DB():
         if is_outed:
             cls.reset_daily_count(qq, 'daily_glue_count')
             return False
-        max = get_config('glue_daily_max')
+        max = Config.get_config('glue_daily_max')
         if current_count >= max:
             return True
         return False
@@ -130,7 +130,7 @@ class DB():
         if is_outed:
             cls.reset_daily_count(qq, 'daily_pk_count')
             return False
-        max = get_config('pk_daily_max')
+        max = Config.get_config('pk_daily_max')
         if current_count >= max:
             return True
         return False
