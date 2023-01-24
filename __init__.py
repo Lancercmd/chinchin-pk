@@ -15,7 +15,7 @@ logger.info(f"{__doc__}:监听群组:{groups}")
 
 @deco.ignore_botself
 @deco.from_these_groups(*groups)
-@deco.these_msgtypes(MsgTypes.GroupFileMsg)
+@deco.these_msgtypes(MsgTypes.TextMsg, MsgTypes.AtMsg)
 def receive_group_msg(ctx: GroupMsg):
     from_user = ctx.FromUserId
     content = ctx.Content
