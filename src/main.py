@@ -1,4 +1,4 @@
-from .db import is_registered, is_lock_daily_limited, create_data, load_data, record_time, count_lock_daily, length_decrease, length_increase, is_glue_daily_limited, count_glue_daily, is_pk_daily_limited, count_pk_daily
+from .db import DB
 from .impl import get_at_segment, send_message
 from .utils import create_match_func_factory, join, get_now_time, fixed_two_decimal_digits, date_improve
 from .config import new_chinchin_length, get_config, is_hit, get_lock_me_punish_value, get_lock_punish_with_strong_person_value, get_lock_plus_value, get_glue_self_punish_value, get_glue_plus_value, is_pk_win, get_pk_plus_value, get_pk_punish_value, get_glue_punish_value
@@ -47,7 +47,7 @@ def message_processor(
         return Chinchin_info.entry_chinchin(qq, group)
 
     # 下面的逻辑必须有牛子
-    if not is_registered(qq):
+    if not DB.is_registered(qq):
         message_arr = [
             get_at_segment(qq),
             '你还没有牛子！'
@@ -57,7 +57,7 @@ def message_processor(
 
     # 对别人的
     if at_qq:
-        if not is_registered(at_qq):
+        if not DB.is_registered(at_qq):
             message_arr = [
                 get_at_segment(qq),
                 '对方还没有牛子！'
@@ -94,7 +94,7 @@ class Chinchin_info():
 
     @staticmethod
     def entry_chinchin(qq: int, group: int):
-        if is_registered(qq):
+        if DB.is_registered(qq):
             user_chinchin_info = ChinchinInternal.internal_get_chinchin_info(
                 qq)
             send_message(qq, group, join(user_chinchin_info, '\n'))
@@ -115,7 +115,7 @@ class Chinchin_info():
                 'glued_time': DEFAULT_NONE_TIME,
                 'locked_time': DEFAULT_NONE_TIME,
             }
-            create_data(qq, new_user)
+            DB.create_data(qq, new_user)
 
     @staticmethod
     def entry_see_chinchin(qq: int, group: int, at_qq: int):
@@ -129,7 +129,7 @@ class Chinchin_info():
 class ChinchinInternal():
     @staticmethod
     def internal_get_chinchin_info(qq: int):
-        user_data = load_data(qq)
+        user_data = DB.load_data(qq)
         message_arr = [
             get_at_segment(qq),
             '【牛子信息】',
@@ -200,7 +200,7 @@ class Chinchin_me():
     @staticmethod
     def entry_lock_me(qq: int, group: int):
         # check limited
-        is_today_limited = is_lock_daily_limited(qq)
+        is_today_limited = DB.is_lock_daily_limited(qq)
         if is_today_limited:
             message_arr = [
                 get_at_segment(qq),
@@ -218,14 +218,14 @@ class Chinchin_me():
             send_message(qq, group, join(message_arr, '\n'))
             return
         lock_me_min = get_config('lock_me_chinchin_min')
-        user_data = load_data(qq)
-        record_time(qq, 'locked_time')
-        count_lock_daily(qq)
+        user_data = DB.load_data(qq)
+        DB.record_time(qq, 'locked_time')
+        DB.count_lock_daily(qq)
         if user_data.get('length') < lock_me_min:
             is_need_punish = is_hit('lock_me_negative_prob')
             if is_need_punish:
                 punish_value = get_lock_me_punish_value()
-                length_decrease(qq, punish_value)
+                DB.length_decrease(qq, punish_value)
                 message_arr = [
                     get_at_segment(qq),
                     '你的牛子还不够长，你🔒不着，牛子自尊心受到了伤害，缩短了{}厘米'.format(punish_value)
@@ -242,7 +242,7 @@ class Chinchin_me():
             is_lock_failed = is_hit('lock_me_negative_prob_with_strong_person')
             if is_lock_failed:
                 punish_value = get_lock_punish_with_strong_person_value()
-                length_decrease(qq, punish_value)
+                DB.length_decrease(qq, punish_value)
                 message_arr = [
                     get_at_segment(qq),
                     '你的牛子太长了，没🔒住爆炸了，缩短了{}厘米'.format(punish_value)
@@ -250,7 +250,7 @@ class Chinchin_me():
                 send_message(qq, group, join(message_arr, '\n'))
             else:
                 plus_value = get_lock_plus_value()
-                length_increase(qq, plus_value)
+                DB.length_increase(qq, plus_value)
                 # TODO: 🔒自己效果有加成
                 message_arr = [
                     get_at_segment(qq),
@@ -261,7 +261,7 @@ class Chinchin_me():
     @staticmethod
     def entry_glue(qq: int, group: int):
         # check limited
-        is_today_limited = is_glue_daily_limited(qq)
+        is_today_limited = DB.is_glue_daily_limited(qq)
         if is_today_limited:
             message_arr = [
                 get_at_segment(qq),
@@ -278,12 +278,12 @@ class Chinchin_me():
             ]
             send_message(qq, group, join(message_arr, '\n'))
             return
-        record_time(qq, 'glueing_time')
-        count_glue_daily(qq)
+        DB.record_time(qq, 'glueing_time')
+        DB.count_glue_daily(qq)
         is_glue_failed = is_hit('glue_self_negative_prob')
         if is_glue_failed:
             punish_value = get_glue_self_punish_value()
-            length_decrease(qq, punish_value)
+            DB.length_decrease(qq, punish_value)
             message_arr = [
                 get_at_segment(qq),
                 '打胶结束，牛子快被冲爆炸了，减小{}厘米'.format(punish_value)
@@ -291,7 +291,7 @@ class Chinchin_me():
             send_message(qq, group, join(message_arr, '\n'))
         else:
             plus_value = get_glue_plus_value()
-            length_increase(qq, plus_value)
+            DB.length_increase(qq, plus_value)
             message_arr = [
                 get_at_segment(qq),
                 '牛子对你的付出很满意吗，增加{}厘米'.format(plus_value)
@@ -312,7 +312,7 @@ class Chinchin_with_target():
             send_message(qq, group, join(message_arr, '\n'))
             return
         # check limited
-        is_today_limited = is_pk_daily_limited(qq)
+        is_today_limited = DB.is_pk_daily_limited(qq)
         if is_today_limited:
             message_arr = [
                 get_at_segment(qq),
@@ -329,8 +329,8 @@ class Chinchin_with_target():
             ]
             send_message(qq, group, join(message_arr, '\n'))
             return
-        target_data = load_data(at_qq)
-        user_data = load_data(qq)
+        target_data = DB.load_data(at_qq)
+        user_data = DB.load_data(qq)
         target_length = target_data.get('length')
         user_length = user_data.get('length')
         offset = user_length - target_length
@@ -340,14 +340,14 @@ class Chinchin_with_target():
             is_user_win = is_pk_win()
         else:
             is_user_win = (offset > 0)
-        record_time(qq, 'pk_time')
-        record_time(at_qq, 'pked_time')
-        count_pk_daily(qq)
+        DB.record_time(qq, 'pk_time')
+        DB.record_time(at_qq, 'pked_time')
+        DB.count_pk_daily(qq)
         if is_user_win:
             user_plus_value = get_pk_plus_value()
             target_punish_value = get_pk_punish_value()
-            length_increase(qq, user_plus_value)
-            length_decrease(at_qq, target_punish_value)
+            DB.length_increase(qq, user_plus_value)
+            DB.length_decrease(at_qq, target_punish_value)
             message_arr = [
                 get_at_segment(qq),
                 'pk成功了，对面牛子不值一提，你的是最棒的，牛子获得自信增加了{}厘米，对面牛子减小了{}厘米'.format(
@@ -357,8 +357,8 @@ class Chinchin_with_target():
         else:
             user_punish_value = get_pk_punish_value()
             target_plus_value = get_pk_plus_value()
-            length_decrease(qq, user_punish_value)
-            length_increase(at_qq, target_plus_value)
+            DB.length_decrease(qq, user_punish_value)
+            DB.length_increase(at_qq, target_plus_value)
             message_arr = [
                 get_at_segment(qq),
                 'pk失败了，在对面牛子的阴影笼罩下，你的牛子减小了{}厘米，对面牛子增加了{}厘米'.format(
@@ -374,7 +374,7 @@ class Chinchin_with_target():
             return
         # TODO：🔒别人可能失败
         # check limited
-        is_today_limited = is_lock_daily_limited(qq)
+        is_today_limited = DB.is_lock_daily_limited(qq)
         if is_today_limited:
             message_arr = [
                 get_at_segment(qq),
@@ -392,9 +392,9 @@ class Chinchin_with_target():
             send_message(qq, group, join(message_arr, '\n'))
             return
         target_plus_value = get_lock_plus_value()
-        length_increase(at_qq, target_plus_value)
-        record_time(at_qq, 'locked_time')
-        count_lock_daily(qq)
+        DB.length_increase(at_qq, target_plus_value)
+        DB.record_time(at_qq, 'locked_time')
+        DB.count_lock_daily(qq)
         message_arr = [
             get_at_segment(qq),
             '🔒的很卖力很舒服，对方牛子增加了{}厘米'.format(target_plus_value)
@@ -408,7 +408,7 @@ class Chinchin_with_target():
             Chinchin_me.entry_glue(qq, group)
             return
         # check limited
-        is_today_limited = is_glue_daily_limited(qq)
+        is_today_limited = DB.is_glue_daily_limited(qq)
         if is_today_limited:
             message_arr = [
                 get_at_segment(qq),
@@ -425,12 +425,12 @@ class Chinchin_with_target():
             ]
             send_message(qq, group, join(message_arr, '\n'))
             return
-        record_time(at_qq, 'glued_time')
-        count_glue_daily(qq)
+        DB.record_time(at_qq, 'glued_time')
+        DB.count_glue_daily(qq)
         is_glue_failed = is_hit('glue_negative_prob')
         if is_glue_failed:
             target_punish_value = get_glue_punish_value()
-            length_decrease(at_qq, target_punish_value)
+            DB.length_decrease(at_qq, target_punish_value)
             message_arr = [
                 get_at_segment(qq),
                 '对方牛子快被大家冲坏了，减小{}厘米'.format(target_punish_value)
@@ -438,7 +438,7 @@ class Chinchin_with_target():
             send_message(qq, group, join(message_arr, '\n'))
         else:
             target_plus_value = get_glue_plus_value()
-            length_increase(at_qq, target_plus_value)
+            DB.length_increase(at_qq, target_plus_value)
             message_arr = [
                 get_at_segment(qq),
                 '你的打胶让对方牛子感到很舒服，对方牛子增加{}厘米'.format(target_plus_value)
