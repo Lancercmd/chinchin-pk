@@ -1,4 +1,5 @@
 import os
+import time
 from src.db import DB
 from src.main import message_processor, KEYWORDS
 from src.utils import get_object_values
@@ -21,17 +22,27 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
-
+snapshot = []
 def wrap(user: int, message: str, at_qq: int = None, comment: str = None):
     if comment:
         print(bcolors.OKGREEN + "------" + comment + "------" + bcolors.ENDC)
+        snapshot.append(comment)
+    def impl_send_message(qq:int, group: int, message: str):
+        print(message)
+        snapshot.append(message)
     message_processor(
         message=message,
         qq=user,
         group=group,
-        at_qq=at_qq
+        at_qq=at_qq,
+        impl_send_message=impl_send_message
     )
 
+def write_snapshot():
+    global snapshot
+    timestamp = int(time.time())
+    with open(f'snapshot-{timestamp}.txt', 'w') as f:
+        f.write('\n'.join(snapshot))
 
 base_db_path = os.path.join(os.path.dirname(__file__), 'src', 'data')
 for file in os.listdir(base_db_path):
@@ -135,5 +146,7 @@ def test2():
     # 看别人牛子
     wrap(user_1, '看他牛子', user_2, comment='user 1 查 user 2 牛子信息')
     wrap(user_1, '看他牛子', comment='None')
+
+    write_snapshot()
 
 test2()

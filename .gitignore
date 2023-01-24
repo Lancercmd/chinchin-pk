@@ -3,3 +3,4 @@ __pycache__
 /src/data
 node_modules
 /tmp.py
+/snapshot-*.txt
