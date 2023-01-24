@@ -1,6 +1,6 @@
 import os
-import utils
-import config
+from .utils import get_now_time, is_date_outed, fixed_two_decimal_digits
+from .config import get_config
 
 try:
     import ujson as json
@@ -51,7 +51,7 @@ def length_increase(qq: int, length: float):
     user_data = load_data(qq)
     user_data['length'] += length
     # ensure fixed 2
-    user_data['length'] = utils.fixed_two_decimal_digits(
+    user_data['length'] = fixed_two_decimal_digits(
         user_data['length'], to_number=True)
     write_data(qq, user_data)
 
@@ -60,7 +60,7 @@ def length_decrease(qq: int, length: float):
     user_data = load_data(qq)
     user_data['length'] -= length
     # ensure fixed 2
-    user_data['length'] = utils.fixed_two_decimal_digits(
+    user_data['length'] = fixed_two_decimal_digits(
         user_data['length'], to_number=True)
     # TODO: 禁止负值，更好的提示
     if user_data['length'] < 0:
@@ -70,7 +70,7 @@ def length_decrease(qq: int, length: float):
 
 def record_time(qq: int, key: str):
     user_data = load_data(qq)
-    user_data[key] = utils.get_now_time()
+    user_data[key] = get_now_time()
     write_data(qq, user_data)
 
 
@@ -83,11 +83,11 @@ def reset_daily_count(qq: int, key: str):
 def is_lock_daily_limited(qq: int):
     user_data = load_data(qq)
     current_count = user_data['daily_lock_count']
-    is_outed = utils.is_date_outed(user_data['latest_daily_lock'])
+    is_outed = is_date_outed(user_data['latest_daily_lock'])
     if is_outed:
         reset_daily_count(qq, 'daily_lock_count')
         return False
-    max = config.get_config('lock_daily_max')
+    max = get_config('lock_daily_max')
     if current_count >= max:
         return True
     return False
@@ -96,18 +96,18 @@ def is_lock_daily_limited(qq: int):
 def count_lock_daily(qq: int):
     user_data = load_data(qq)
     user_data['daily_lock_count'] += 1
-    user_data['latest_daily_lock'] = utils.get_now_time()
+    user_data['latest_daily_lock'] = get_now_time()
     write_data(qq, user_data)
 
 
 def is_glue_daily_limited(qq: int):
     user_data = load_data(qq)
     current_count = user_data['daily_glue_count']
-    is_outed = utils.is_date_outed(user_data['latest_daily_glue'])
+    is_outed = is_date_outed(user_data['latest_daily_glue'])
     if is_outed:
         reset_daily_count(qq, 'daily_glue_count')
         return False
-    max = config.get_config('glue_daily_max')
+    max = get_config('glue_daily_max')
     if current_count >= max:
         return True
     return False
@@ -116,18 +116,18 @@ def is_glue_daily_limited(qq: int):
 def count_glue_daily(qq: int):
     user_data = load_data(qq)
     user_data['daily_glue_count'] += 1
-    user_data['latest_daily_glue'] = utils.get_now_time()
+    user_data['latest_daily_glue'] = get_now_time()
     write_data(qq, user_data)
 
 
 def is_pk_daily_limited(qq: int):
     user_data = load_data(qq)
     current_count = user_data['daily_pk_count']
-    is_outed = utils.is_date_outed(user_data['latest_daily_pk'])
+    is_outed = is_date_outed(user_data['latest_daily_pk'])
     if is_outed:
         reset_daily_count(qq, 'daily_pk_count')
         return False
-    max = config.get_config('pk_daily_max')
+    max = get_config('pk_daily_max')
     if current_count >= max:
         return True
     return False
@@ -136,5 +136,5 @@ def is_pk_daily_limited(qq: int):
 def count_pk_daily(qq: int):
     user_data = load_data(qq)
     user_data['daily_pk_count'] += 1
-    user_data['latest_daily_pk'] = utils.get_now_time()
+    user_data['latest_daily_pk'] = get_now_time()
     write_data(qq, user_data)

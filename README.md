@@ -183,7 +183,6 @@ botoy 插件入口文件 `__init__.py` ，配置如下：
 ├── db.py       # 数据库实现，目前是 json ，可自行将借口改到 sqlite
 ├── impl.py     # 消息实现，对接你的 Bot 发消息函数
 ├── main.py     # 程序入口函数 message_processor
-├── test.py     # 逻辑测试
 └── utils.py
 ```
 

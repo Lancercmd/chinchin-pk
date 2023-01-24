@@ -1,6 +1,6 @@
 import os
 import random
-import utils
+from .utils import fixed_two_decimal_digits
 
 try:
     import ujson as json
@@ -29,7 +29,7 @@ def get_config(key: str):
 def new_chinchin_length():
     min = get_config('new_chinchin_length_random_min')
     max = get_config('new_chinchin_length_random_max')
-    return utils.fixed_two_decimal_digits(
+    return fixed_two_decimal_digits(
         min + (max - min) * random.random(),
         to_number=True
     )
@@ -43,7 +43,7 @@ def is_hit(key: str):
 def get_lock_me_punish_value():
     min = get_config('lock_me_negative_min')
     max = get_config('lock_me_negative_max')
-    return utils.fixed_two_decimal_digits(
+    return fixed_two_decimal_digits(
         min + (max - min) * random.random(),
         to_number=True
     )
@@ -52,7 +52,7 @@ def get_lock_me_punish_value():
 def get_lock_plus_value():
     min = get_config('lock_plus_min')
     max = get_config('lock_plus_max')
-    return utils.fixed_two_decimal_digits(
+    return fixed_two_decimal_digits(
         min + (max - min) * random.random(),
         to_number=True
     )
@@ -61,7 +61,7 @@ def get_lock_plus_value():
 def get_glue_plus_value():
     min = get_config('glue_plus_min')
     max = get_config('glue_plus_max')
-    return utils.fixed_two_decimal_digits(
+    return fixed_two_decimal_digits(
         min + (max - min) * random.random(),
         to_number=True
     )
@@ -74,7 +74,7 @@ def is_pk_win():
 def get_pk_plus_value():
     min = get_config('pk_plus_min')
     max = get_config('pk_plus_max')
-    return utils.fixed_two_decimal_digits(
+    return fixed_two_decimal_digits(
         min + (max - min) * random.random(),
         to_number=True
     )
@@ -83,7 +83,7 @@ def get_pk_plus_value():
 def get_pk_punish_value():
     min = get_config('pk_negative_min')
     max = get_config('pk_negative_max')
-    return utils.fixed_two_decimal_digits(
+    return fixed_two_decimal_digits(
         min + (max - min) * random.random(),
         to_number=True
     )
@@ -92,7 +92,7 @@ def get_pk_punish_value():
 def get_glue_punish_value():
     min = get_config('glue_negative_min')
     max = get_config('glue_negative_max')
-    return utils.fixed_two_decimal_digits(
+    return fixed_two_decimal_digits(
         min + (max - min) * random.random(),
         to_number=True
     )
@@ -101,7 +101,7 @@ def get_glue_punish_value():
 def get_lock_punish_with_strong_person_value():
     min = get_config('lock_me_negative_with_strong_person_min')
     max = get_config('lock_me_negative_with_strong_person_max')
-    return utils.fixed_two_decimal_digits(
+    return fixed_two_decimal_digits(
         min + (max - min) * random.random(),
         to_number=True
     )
@@ -110,7 +110,7 @@ def get_lock_punish_with_strong_person_value():
 def get_glue_self_punish_value():
     min = get_config('glue_self_negative_min')
     max = get_config('glue_self_negative_max')
-    return utils.fixed_two_decimal_digits(
+    return fixed_two_decimal_digits(
         min + (max - min) * random.random(),
         to_number=True
     )

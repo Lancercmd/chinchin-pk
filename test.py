@@ -1,6 +1,6 @@
-import main
 import os
-import db
+from src.db import load_data, write_data
+from src.main import message_processor
 
 user_1 = 123456789
 user_2 = 987654321
@@ -22,7 +22,7 @@ class bcolors:
 def wrap(user: int, message: str, at_qq: int = None, comment: str = None):
     if comment:
         print(bcolors.OKGREEN + "------" + comment + "------" + bcolors.ENDC)
-    main.message_processor(
+    message_processor(
         message=message,
         qq=user,
         group=group,
@@ -30,7 +30,7 @@ def wrap(user: int, message: str, at_qq: int = None, comment: str = None):
     )
 
 
-base_db_path = os.path.join(os.path.dirname(__file__), 'data')
+base_db_path = os.path.join(os.path.dirname(__file__), 'src', 'data')
 for file in os.listdir(base_db_path):
     os.remove(os.path.join(base_db_path, file))
 
@@ -92,18 +92,18 @@ def test2():
     wrap(user_2, '牛子', comment='user 2 查牛子信息')
 
     # 隔日
-    data = db.load_data(user_1)
+    data = load_data(user_1)
     data['latest_daily_lock'] = '2020-01-01 00:00:01'
     data['pked_time'] = '2020-01-01 00:00:01'
-    db.write_data(user_1, data)
+    write_data(user_1, data)
     wrap(user_1, '牛子', comment='user 1 隔日查牛子信息')
     wrap(user_1, '🔒我', comment='user 1 🔒自己')
 
     # 大额惩罚机制
-    data = db.load_data(user_1)
+    data = load_data(user_1)
     data['length'] = 25
     data['latest_daily_lock'] = '2020-01-01 00:00:01'
-    db.write_data(user_1, data)
+    write_data(user_1, data)
     wrap(user_1, '牛子', comment='user 1 查牛子信息')
     wrap(user_1, '🔒我', comment='user 1 🔒自己 +1')
     wrap(user_1, '🔒我', comment='user 1 🔒自己 +2')
