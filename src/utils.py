@@ -33,8 +33,14 @@ def is_date_outed(time: str):
     return arrow.get(time).format('YYYY-MM-DD') != arrow.now().format('YYYY-MM-DD')
 
 
-def is_keyword_matched(keywords: list, text: str):
-    for keyword in keywords:
-        if text == keyword:
-            return True
-    return False
+def create_match_func_factory(message: str, fuzzy: bool = False):
+    def is_keyword_matched(keywords: list, text: str):
+        for keyword in keywords:
+            if fuzzy:
+                if text.startswith(keyword):
+                    return True
+            else:
+                if text == keyword:
+                    return True
+        return False
+    return is_keyword_matched

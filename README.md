@@ -2,7 +2,7 @@
 
 牛子系统。
 
-### 示例
+## 示例
 
 <details><summary>展开查看功能测试示例</summary>
 
@@ -154,11 +154,25 @@ pk失败了，在对面牛子的阴影笼罩下，你的牛子减小了0.3厘米
 注册时间: 21:11</code></pre>
 </details>
 
-### 使用
+## Botoy
 
 ```bash
   pip -r requirements.txt
 ```
+
+botoy 插件入口文件 `__init__.py` ，配置如下：
+
+```ts
+// botoy.json
+{
+  // 白名单群组（开启本功能的群组）
+  "chinchin_system.groups": [123456, 654321]
+}
+```
+
+## 独立使用
+
+核心逻辑和 botoy 是解耦的，请参见 `src/*` ：
 
 ### 目录结构
 
@@ -203,6 +217,6 @@ def message_processor(
 
 2. 欢迎 PR 实现更多功能补充，请搜索代码中的 `TODO` 。
 
-### License
+## License
 
 MIT

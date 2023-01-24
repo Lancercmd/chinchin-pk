@@ -16,7 +16,15 @@ KEYWORDS = {
 DEFAULT_NONE_TIME = '2000-01-01 00:00:00'
 
 
-def message_processor(message: str, qq: int, group: int, at_qq: Optional[int] = None):
+def message_processor(
+    message: str,
+    qq: int,
+    group: int,
+    at_qq: Optional[int] = None,
+    fuzzy_match: bool = False,
+    impl_at_segment = None,
+    impl_send_message = None
+):
     """
         main entry
         TODO: 打胶 cd
@@ -24,9 +32,16 @@ def message_processor(message: str, qq: int, group: int, at_qq: Optional[int] = 
         TODO: 查牛子排名 （ e.g. 牛子排名 ）
     """
     message = message.strip()
+    match_func = utils.create_match_func_factory(message, fuzzy=fuzzy_match)
+
+    # hack impl
+    if impl_at_segment:
+        impl.get_at_segment = impl_at_segment
+    if impl_send_message:
+        impl.send_message = impl_send_message
 
     # 查询牛子信息
-    if utils.is_keyword_matched(KEYWORDS.get('chinchin'), message):
+    if match_func(KEYWORDS.get('chinchin'), message):
         return entry_chinchin(qq, group)
 
     # 下面的逻辑必须有牛子
@@ -53,27 +68,27 @@ def message_processor(message: str, qq: int, group: int, at_qq: Optional[int] = 
             return
 
         # pk别人
-        if utils.is_keyword_matched(KEYWORDS.get('pk'), message):
+        if match_func(KEYWORDS.get('pk'), message):
             return entry_pk_with_target(qq, group, at_qq)
 
         # 🔒别人
-        if utils.is_keyword_matched(KEYWORDS.get('lock'), message):
+        if match_func(KEYWORDS.get('lock'), message):
             return entry_lock_with_target(qq, group, at_qq)
 
         # 打胶别人
-        if utils.is_keyword_matched(KEYWORDS.get('glue'), message):
+        if match_func(KEYWORDS.get('glue'), message):
             return entry_glue_with_target(qq, group, at_qq)
 
         # 看别人的牛子
-        if utils.is_keyword_matched(KEYWORDS.get('see_chinchin'), message):
+        if match_func(KEYWORDS.get('see_chinchin'), message):
             return entry_see_chinchin(qq, group, at_qq)
     else:
         # 🔒自己
-        if utils.is_keyword_matched(KEYWORDS.get('lock_me'), message):
+        if match_func(KEYWORDS.get('lock_me'), message):
             return entry_lock_me(qq, group)
 
         # 自己打胶
-        if utils.is_keyword_matched(KEYWORDS.get('glue'), message):
+        if match_func(KEYWORDS.get('glue'), message):
             return entry_glue(qq, group)
 
 
