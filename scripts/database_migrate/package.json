@@ -1,0 +1,21 @@
+{
+  "name": "database_migrate",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "tsx ./index.ts",
+    "build": "tsc && pkg ./dist/index.js --out-path ./build"
+  },
+  "devDependencies": {
+    "@types/node": "^18.11.18",
+    "@xn-sakina/mental": "^2.0.0",
+    "pkg": "^5.8.0",
+    "tsx": "^3.12.2",
+    "typescript": "^4.9.4"
+  },
+  "dependencies": {
+    "better-sqlite3": "^8.0.1",
+    "knex": "^2.4.2",
+    "zx": "^7.1.1"
+  }
+}

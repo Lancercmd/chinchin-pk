@@ -1,0 +1,4 @@
+/dist
+/build
+/data.sqlite
+/data_migrate.sql

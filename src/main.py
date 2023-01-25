@@ -1,4 +1,4 @@
-from .db import DB
+from .db import DB, lazy_init_database
 from .impl import get_at_segment, send_message
 from .utils import create_match_func_factory, join, get_now_time, fixed_two_decimal_digits, date_improve
 from .config import Config
@@ -31,6 +31,10 @@ def message_processor(
         TODO: 破解牛子：被破解的 牛子 长度操作 x 100 倍
         TODO: 查牛子排名 （ e.g. 牛子排名 ）
     """
+    # lazy init database
+    lazy_init_database()
+
+    # message process
     message = message.strip()
     match_func = create_match_func_factory(fuzzy=fuzzy_match)
 
@@ -115,7 +119,7 @@ class Chinchin_info():
                 'glued_time': DEFAULT_NONE_TIME,
                 'locked_time': DEFAULT_NONE_TIME,
             }
-            DB.create_data(qq, new_user)
+            DB.create_data(new_user)
 
     @staticmethod
     def entry_see_chinchin(qq: int, group: int, at_qq: int):

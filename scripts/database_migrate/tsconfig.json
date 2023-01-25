@@ -1,0 +1,7 @@
+{
+  "extends": "@xn-sakina/mental/lib",
+  "compilerOptions": {
+    "outDir": "./dist",
+    "declaration": false
+  }
+}

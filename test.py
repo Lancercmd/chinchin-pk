@@ -11,6 +11,7 @@ group = 123
 k = get_object_values(KEYWORDS)
 print(k)
 
+
 class bcolors:
     HEADER = '\033[95m'
     OKBLUE = '\033[94m'
@@ -22,12 +23,16 @@ class bcolors:
     BOLD = '\033[1m'
     UNDERLINE = '\033[4m'
 
+
 snapshot = []
+
+
 def wrap(user: int, message: str, at_qq: int = None, comment: str = None):
     if comment:
         print(bcolors.OKGREEN + "------" + comment + "------" + bcolors.ENDC)
         snapshot.append(comment)
-    def impl_send_message(qq:int, group: int, message: str):
+
+    def impl_send_message(qq: int, group: int, message: str):
         print(message)
         snapshot.append(message)
     message_processor(
@@ -38,18 +43,24 @@ def wrap(user: int, message: str, at_qq: int = None, comment: str = None):
         impl_send_message=impl_send_message
     )
 
+
 def write_snapshot():
     global snapshot
     timestamp = int(time.time())
     with open(f'snapshot-{timestamp}.txt', 'w') as f:
         f.write('\n'.join(snapshot))
 
-base_db_path = os.path.join(os.path.dirname(__file__), 'src', 'data')
-for file in os.listdir(base_db_path):
-    os.remove(os.path.join(base_db_path, file))
+
+is_first_game = True
+if is_first_game:
+    base_db_path = os.path.join(os.path.dirname(__file__), 'src', 'data-v2')
+    if os.path.exists(base_db_path):
+        print('remove old data')
+        os.system(f'rm -rf {base_db_path}')
 
 
 def test2():
+
     wrap(user_1, '打胶', comment='没注册')
     wrap(user_1, '牛子', comment='注册')
     wrap(user_1, '打胶', user_2, comment='打胶别人失败')
@@ -109,7 +120,7 @@ def test2():
     data = DB.load_data(user_1)
     data['latest_daily_lock'] = '2020-01-01 00:00:01'
     data['pked_time'] = '2020-01-01 00:00:01'
-    DB.write_data(user_1, data)
+    DB.write_data(data)
     wrap(user_1, '牛子', comment='user 1 隔日查牛子信息')
     wrap(user_1, '🔒我', comment='user 1 🔒自己 l+1')
     wrap(user_1, '🔒我', comment='user 1 🔒自己 l+2')
@@ -121,7 +132,7 @@ def test2():
     data = DB.load_data(user_1)
     data['length'] = 25
     data['latest_daily_lock'] = '2020-01-01 00:00:01'
-    DB.write_data(user_1, data)
+    DB.write_data(data)
     wrap(user_1, '牛子', comment='大额惩罚机制 user 1 查牛子信息')
     wrap(user_1, '🔒我', comment='user 1 🔒自己 l+1')
     wrap(user_1, '🔒我', comment='user 1 🔒自己 l+2')
@@ -137,7 +148,7 @@ def test2():
     data['latest_daily_glue'] = '2023-01-25 01:00:00'
     data['daily_pk_count'] = 6
     data['latest_daily_pk'] = '2023-01-25 01:00:00'
-    DB.write_data(user_1, data)
+    DB.write_data(data)
     wrap(user_1, '🔒', user_2, comment='user 1 🔒 user 2 max')
     wrap(user_1, '打胶', user_2, comment='user 1 打胶 user 2')
     wrap(user_1, '打胶', user_2, comment='user 1 打胶 user 2 max')
@@ -148,5 +159,6 @@ def test2():
     wrap(user_1, '看他牛子', comment='None')
 
     write_snapshot()
+
 
 test2()

@@ -1,6 +1,12 @@
 __pycache__
 .DS_Store
-/src/data
 node_modules
 /tmp.py
 /snapshot-*.txt
+
+# data v1
+/src/data
+# data v1 backup
+/src/data-v1-backup
+# data v2
+/src/data-v2
