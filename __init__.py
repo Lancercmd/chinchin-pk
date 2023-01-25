@@ -32,6 +32,9 @@ async def receive_group_msg(ctx: GroupMsg):
 
     if ctx.MsgType == MsgTypes.AtMsg:
         at_data = gp.at(ctx)
+        # FIXME: at all 时 at_data 为 None
+        if not at_data:
+            return
         # 只对 at 一个人生效
         if len(at_data.UserExt) != 1:
             return
