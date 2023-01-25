@@ -2,6 +2,8 @@
 
 牛子系统。
 
+> *Version: 2.0.0*
+
 ## 示例
 
 <details><summary>展开查看功能测试示例</summary>
@@ -182,7 +184,7 @@ botoy 插件入口文件 `__init__.py` ，配置如下：
 ./src
 ├── config.json # 配置文件，每次修改后需要重启
 ├── config.py
-├── db.py       # 数据库实现，目前是 json ，可自行将借口改到 sqlite
+├── db.py       # 数据库实现，目前是 sqlite ，如需更好的性能，可使用连接池、改为其他数据库
 ├── impl.py     # 消息实现，对接你的 Bot 发消息函数
 ├── main.py     # 程序入口函数 message_processor
 └── utils.py
@@ -233,6 +235,20 @@ def message_processor(
 1. 若部分逻辑不符合对接要求，可以自行修改。
 
 2. 欢迎 PR 实现更多功能补充，请搜索代码中的 `TODO` 。
+
+## 从 v1 迁移
+
+由于速度问题，v2 使用了 sqlite 的数据库实现，所以从 v1 迁移到 v2 只需要运行数据库迁移脚本即可。
+
+### 迁移方法
+
+首先，拉取本仓库最新代码，运行：
+
+```bash
+  python ./scripts/database_migrate_python/migrate.py
+```
+
+这会将你的 `src/data/*.json` 全部迁移到 `src/data-v2/data.sqlite` ，并且自动备份 `src/data/*` 到 `src/data-v1-backup/*` ，查看 `data.sqlite` 没有问题后，可以删除 `src/data` 文件夹。
 
 ## License
 
