@@ -2,8 +2,6 @@
 
 牛子系统。
 
-> *Version: 2.0.0*
-
 ## 示例
 
 <details><summary>展开查看功能测试示例</summary>
