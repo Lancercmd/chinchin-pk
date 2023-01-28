@@ -11,7 +11,8 @@ KEYWORDS = {
     'lock_me': ['🔒我'],
     'lock': ['🔒', 'suo', '嗦', '锁'],
     'glue': ['打胶'],
-    'see_chinchin': ['看他牛子']
+    'see_chinchin': ['看他牛子'],
+    'sign_up': ['注册牛子']
 }
 
 DEFAULT_NONE_TIME = '2000-01-01 00:00:00'
@@ -46,9 +47,9 @@ def message_processor(
         global send_message
         send_message = impl_send_message
 
-    # 查询牛子信息
-    if match_func(KEYWORDS.get('chinchin'), message):
-        return Chinchin_info.entry_chinchin(qq, group)
+    # 注册牛子
+    if match_func(KEYWORDS.get('sign_up'), message):
+        return Chinchin_me.sign_up(qq, group)
 
     # 下面的逻辑必须有牛子
     if not DB.is_registered(qq):
@@ -58,6 +59,10 @@ def message_processor(
         ]
         send_message(qq, group, join(message_arr, '\n'))
         return
+
+    # 查询牛子信息
+    if match_func(KEYWORDS.get('chinchin'), message):
+        return Chinchin_info.entry_chinchin(qq, group)
 
     # 对别人的
     if at_qq:
@@ -98,28 +103,9 @@ class Chinchin_info():
 
     @staticmethod
     def entry_chinchin(qq: int, group: int):
-        if DB.is_registered(qq):
-            user_chinchin_info = ChinchinInternal.internal_get_chinchin_info(
-                qq)
-            send_message(qq, group, join(user_chinchin_info, '\n'))
-        else:
-            new_user = {
-                'qq': qq,
-                'length': Config.new_chinchin_length(),
-                'register_time': get_now_time(),
-                'daily_lock_count': 0,
-                'daily_pk_count': 0,
-                'daily_glue_count': 0,
-                'latest_daily_lock': DEFAULT_NONE_TIME,
-                'latest_daily_pk': DEFAULT_NONE_TIME,
-                'latest_daily_glue': DEFAULT_NONE_TIME,
-                'pk_time': DEFAULT_NONE_TIME,
-                'pked_time': DEFAULT_NONE_TIME,
-                'glueing_time': DEFAULT_NONE_TIME,
-                'glued_time': DEFAULT_NONE_TIME,
-                'locked_time': DEFAULT_NONE_TIME,
-            }
-            DB.create_data(new_user)
+        user_chinchin_info = ChinchinInternal.internal_get_chinchin_info(
+            qq)
+        send_message(qq, group, join(user_chinchin_info, '\n'))
 
     @staticmethod
     def entry_see_chinchin(qq: int, group: int, at_qq: int):
@@ -302,6 +288,43 @@ class Chinchin_me():
                 '牛子对你的付出很满意吗，增加{}厘米'.format(plus_value)
             ]
             send_message(qq, group, join(message_arr, '\n'))
+
+    @staticmethod
+    def sign_up(qq: int, group: int):
+        if DB.is_registered(qq):
+            message_arr = [
+                get_at_segment(qq),
+                '你已经有牛子了！'
+            ]
+            send_message(qq, group, join(message_arr, '\n'))
+            return
+        # 注册
+        new_length = Config.new_chinchin_length()
+        new_user = {
+            'qq': qq,
+            'length': new_length,
+            'register_time': get_now_time(),
+            'daily_lock_count': 0,
+            'daily_pk_count': 0,
+            'daily_glue_count': 0,
+            'latest_daily_lock': DEFAULT_NONE_TIME,
+            'latest_daily_pk': DEFAULT_NONE_TIME,
+            'latest_daily_glue': DEFAULT_NONE_TIME,
+            'pk_time': DEFAULT_NONE_TIME,
+            'pked_time': DEFAULT_NONE_TIME,
+            'glueing_time': DEFAULT_NONE_TIME,
+            'glued_time': DEFAULT_NONE_TIME,
+            'locked_time': DEFAULT_NONE_TIME,
+        }
+        DB.create_data(new_user)
+        message_arr = [
+            get_at_segment(qq),
+            '你是第{}位拥有牛子的人，当前长度：{}厘米，请好好善待它！'.format(
+                DB.get_data_counts(),
+                fixed_two_decimal_digits(new_length),
+            )
+        ]
+        send_message(qq, group, join(message_arr, '\n'))
 
 
 class Chinchin_with_target():

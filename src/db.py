@@ -57,6 +57,16 @@ class Sql():
     def __sql_update_single_data(data: dict):
         return f'update `users` set `length` = {data["length"]}, `register_time` = "{data["register_time"]}", `daily_lock_count` = {data["daily_lock_count"]}, `daily_pk_count` = {data["daily_pk_count"]}, `daily_glue_count` = {data["daily_glue_count"]}, `latest_daily_lock` = "{data["latest_daily_lock"]}", `latest_daily_pk` = "{data["latest_daily_pk"]}", `latest_daily_glue` = "{data["latest_daily_glue"]}", `pk_time` = "{data["pk_time"]}", `pked_time` = "{data["pked_time"]}", `glueing_time` = "{data["glueing_time"]}", `glued_time` = "{data["glued_time"]}", `locked_time` = "{data["locked_time"]}" where `qq` = {data["qq"]};'
 
+    @staticmethod
+    def __sql_get_data_counts():
+        return 'select count(*) from `users`;'
+
+    @classmethod
+    def get_data_counts(cls) -> int:
+        sql_ins.cursor.execute(cls.__sql_get_data_counts())
+        one = sql_ins.cursor.fetchone()
+        return one[0]
+
     @classmethod
     def insert_single_data(cls, data: dict):
         sql_ins.cursor.execute(cls.__sql_insert_single_data(data))
@@ -134,6 +144,10 @@ class DB():
     @classmethod
     def write_data(cls, data: dict):
         Sql.update_data_by_qq(data)
+
+    @staticmethod
+    def get_data_counts():
+        return Sql.get_data_counts()
 
     @classmethod
     def length_increase(cls, qq: int, length: float):

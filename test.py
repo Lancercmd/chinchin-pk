@@ -62,13 +62,15 @@ if is_first_game:
 def test2():
 
     wrap(user_1, '打胶', comment='没注册')
-    wrap(user_1, '牛子', comment='注册')
+    wrap(user_1, '牛子', comment='没注册')
+    wrap(user_1, '注册牛子', comment='注册')
     wrap(user_1, '打胶', user_2, comment='打胶别人失败')
     wrap(user_1, 'pk', user_2, comment='pk 别人失败')
     wrap(user_1, '🔒', user_2, comment='🔒别人失败')
     wrap(user_1, '牛子', comment='查牛子信息')
 
-    wrap(user_2, '牛子', comment='对方注册')
+    wrap(user_2, '牛子', comment='没注册')
+    wrap(user_2, '注册牛子', comment='对方注册')
     wrap(user_2, '牛子', comment='user 2 查牛子信息')
     wrap(user_2, '打胶', comment='user 2 自己打胶 l+1')
     wrap(user_2, '🔒我', comment='user 2 自己🔒自己 s+1')

@@ -8,6 +8,7 @@ from .src.main import message_processor, KEYWORDS
 from .src.utils import get_object_values, create_match_func_factory
 
 __doc__ = "牛子系统"
+__version__ = "2.1.0"
 config = jconfig.get_configuration("chinchin_system")
 groups = config.get("groups")
 

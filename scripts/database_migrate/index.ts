@@ -74,6 +74,9 @@ const run = async () => {
       .where('qq', 123456789)
       .toSQL()
     sql.push(updateSql.sql)
+    // get all data counts
+    const countSql = await ins.table('users').count().toSQL()
+    sql.push(countSql.sql)
     // write
     fs.writeFileSync(SQL_FILE, sql.join(';\n') + ';\n', 'utf-8')
   } catch (e) {
