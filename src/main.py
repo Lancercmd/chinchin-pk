@@ -357,6 +357,15 @@ class Chinchin_with_target():
             ]
             send_message(qq, group, join(message_arr, '\n'))
             return
+        # pk 保护机制：禁止刷分
+        is_target_protected = DB.is_pk_protected(at_qq)
+        if is_target_protected:
+            message_arr = [
+                get_at_segment(qq),
+                '对方快没有牛子了，行行好吧！'
+            ]
+            send_message(qq, group, join(message_arr, '\n'))
+            return
         target_data = DB.load_data(at_qq)
         user_data = DB.load_data(qq)
         target_length = target_data.get('length')

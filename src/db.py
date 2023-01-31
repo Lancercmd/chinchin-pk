@@ -242,6 +242,13 @@ class DB():
         user_data['latest_daily_pk'] = get_now_time()
         cls.write_data(user_data)
 
+    @classmethod
+    def is_pk_protected(cls, qq: int):
+        user_data = cls.load_data(qq)
+        min_length = Config.get_config('pk_guard_chinchin_length')
+        if user_data['length'] <= min_length:
+            return True
+        return False
 
 def lazy_init_database():
     Sql.init_database()

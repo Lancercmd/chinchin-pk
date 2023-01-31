@@ -2,7 +2,7 @@ import os
 import time
 from src.db import DB
 from src.main import message_processor, KEYWORDS
-from src.utils import get_object_values
+from src.utils import get_object_values, get_now_time
 
 user_1 = 123456789
 user_2 = 987654321
@@ -147,9 +147,9 @@ def test2():
     data = DB.load_data(user_1)
     data['daily_lock_count'] = 6
     data['daily_glue_count'] = 5
-    data['latest_daily_glue'] = '2023-01-25 01:00:00'
+    data['latest_daily_glue'] = get_now_time()
     data['daily_pk_count'] = 6
-    data['latest_daily_pk'] = '2023-01-25 01:00:00'
+    data['latest_daily_pk'] = get_now_time()
     DB.write_data(data)
     wrap(user_1, '🔒', user_2, comment='user 1 🔒 user 2 max')
     wrap(user_1, '打胶', user_2, comment='user 1 打胶 user 2')
@@ -159,6 +159,16 @@ def test2():
     # 看别人牛子
     wrap(user_1, '看他牛子', user_2, comment='user 1 查 user 2 牛子信息')
     wrap(user_1, '看他牛子', comment='None')
+
+    # pk保护
+    data = DB.load_data(user_1)
+    data['length'] = 5
+    DB.write_data(data)
+    data = DB.load_data(user_2)
+    data['latest_daily_pk'] = '2020-01-01 00:00:01'
+    DB.write_data(data)
+    wrap(user_2, 'pk', user_1, comment='user 2 pk user 1 触发 pk 保护')
+    wrap(user_2, 'pk', user_1, comment='user 2 pk user 1 触发 pk 保护 +2')
 
     write_snapshot()
 

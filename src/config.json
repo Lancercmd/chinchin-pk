@@ -65,5 +65,8 @@
     "##lock_me_negative_prob_with_strong_person": "满足🔒自己的长度后，回报高，但有概率失败得到大额惩罚",
     "lock_me_negative_prob_with_strong_person": 0.2,
     "lock_me_negative_with_strong_person_min": 2,
-    "lock_me_negative_with_strong_person_max": 5
+    "lock_me_negative_with_strong_person_max": 5,
+
+    "##pk_guard_chinchin_length": "禁止对弱者一直pk刷长度，低于该长度的人会开启pk保护",
+    "pk_guard_chinchin_length": 5
 }
