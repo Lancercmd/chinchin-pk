@@ -220,6 +220,8 @@ def message_processor(
   group: int,
   # at 了谁，若没 at ，无需传递
   at_qq: Optional[int] = None,
+  # nickname ，用户昵称 or 群昵称，用于排行榜
+  nickname: Optional[str] = None,
   # 实现 at 消息部分
   impl_at_segment,
   # 实现发送消息部分

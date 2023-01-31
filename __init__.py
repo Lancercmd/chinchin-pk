@@ -7,7 +7,7 @@ from botoy.parser import group as gp
 from .src.main import message_processor, KEYWORDS
 from .src.utils import get_object_values, create_match_func_factory
 
-__version__ = "2.1.1"
+__version__ = "2.2.0"
 __doc__ = "牛子系统 v{}".format(__version__)
 config = jconfig.get_configuration("chinchin_system")
 groups = config.get("groups")
@@ -23,6 +23,7 @@ match_func = create_match_func_factory(fuzzy=True)
 async def receive_group_msg(ctx: GroupMsg):
     from_user = ctx.FromUserId
     group = ctx.FromGroupId
+    nickname = ctx.FromNickName
 
     def impl_at_segment(qq: int):
         return ctx.FromNickName
@@ -49,6 +50,7 @@ async def receive_group_msg(ctx: GroupMsg):
             at_qq=target,
             group=group,
             fuzzy_match=True,
+            nickname=nickname,
             impl_at_segment=impl_at_segment,
             impl_send_message=impl_send_message
         )
@@ -62,6 +64,7 @@ async def receive_group_msg(ctx: GroupMsg):
             qq=from_user,
             group=group,
             fuzzy_match=True,
+            nickname=nickname,
             impl_at_segment=impl_at_segment,
             impl_send_message=impl_send_message
         )
