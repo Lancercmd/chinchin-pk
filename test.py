@@ -8,7 +8,7 @@ user_1 = 123456789
 user_2 = 987654321
 user_3 = 1233
 user_1_nickname = '用户1'
-user_2_nickname = '用户2'
+user_2_nickname = "'; select true; --"
 group = 123
 
 k = get_object_values(KEYWORDS)

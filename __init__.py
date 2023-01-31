@@ -7,7 +7,7 @@ from botoy.parser import group as gp
 from .src.main import message_processor, KEYWORDS
 from .src.utils import get_object_values, create_match_func_factory
 
-__version__ = "2.2.0"
+__version__ = "2.2.1"
 __doc__ = "牛子系统 v{}".format(__version__)
 config = jconfig.get_configuration("chinchin_system")
 groups = config.get("groups")

@@ -45,7 +45,7 @@ class Sql_UserInfo():
     @classmethod
     def _sql_insert_single_data(cls, data: dict):
         data = cls._empty_data_handler(data)
-        return f'insert into `info` (`latest_speech_group`, `latest_speech_nickname`, `qq`) values ({data["latest_speech_group"]}, "{data["latest_speech_nickname"]}", {data["qq"]});'
+        return f'insert into `info` (`latest_speech_group`, `latest_speech_nickname`, `qq`) values (:latest_speech_group, :latest_speech_nickname, {data["qq"]});'
 
     @staticmethod
     def _sql_select_single_data(qq: int):
@@ -58,7 +58,7 @@ class Sql_UserInfo():
     @classmethod
     def _sql_update_single_data(cls, data: dict):
         data = cls._empty_data_handler(data)
-        return f'update `info` set `latest_speech_nickname` = "{data["latest_speech_nickname"]}", `latest_speech_group` = {data["latest_speech_group"]} where `qq` = {data["qq"]};'
+        return f'update `info` set `latest_speech_nickname` = :latest_speech_nickname, `latest_speech_group` = :latest_speech_group where `qq` = {data["qq"]};'
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
@@ -214,10 +214,10 @@ class DB_UserInfo():
         is_exists = cls.is_user_exists(qq)
         if is_exists:
             sql_ins.cursor.execute(
-                Sql.sub_table_info._sql_update_single_data(data))
+                Sql.sub_table_info._sql_update_single_data(data), data)
         else:
             sql_ins.cursor.execute(
-                Sql.sub_table_info._sql_insert_single_data(data))
+                Sql.sub_table_info._sql_insert_single_data(data), data)
         sql_ins.conn.commit()
 
 
