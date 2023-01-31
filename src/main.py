@@ -32,6 +32,8 @@ def message_processor(
     """
         main entry
         TODO: 破解牛子：被破解的 牛子 长度操作 x 100 倍
+        TODO: 不同群不同的配置参数
+        TODO: 成就系统
     """
     # lazy init database
     lazy_init_database()
