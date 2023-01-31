@@ -6,6 +6,9 @@ from src.utils import get_object_values, get_now_time
 
 user_1 = 123456789
 user_2 = 987654321
+user_3 = 1233
+user_1_nickname = '用户1'
+user_2_nickname = '用户2'
 group = 123
 
 k = get_object_values(KEYWORDS)
@@ -35,11 +38,17 @@ def wrap(user: int, message: str, at_qq: int = None, comment: str = None):
     def impl_send_message(qq: int, group: int, message: str):
         print(message)
         snapshot.append(message)
+    nickname = None
+    if user == user_1:
+        nickname = user_1_nickname
+    elif user == user_2:
+        nickname = user_2_nickname
     message_processor(
         message=message,
         qq=user,
         group=group,
         at_qq=at_qq,
+        nickname=nickname,
         impl_send_message=impl_send_message
     )
 
@@ -59,7 +68,7 @@ if is_first_game:
         os.system(f'rm -rf {base_db_path}')
 
 
-def test2():
+def test_legacy():
 
     wrap(user_1, '打胶', comment='没注册')
     wrap(user_1, '牛子', comment='没注册')
@@ -172,5 +181,17 @@ def test2():
 
     write_snapshot()
 
+def test_nickname():
+    # wrap(user_1, '注册牛子', comment='1 注册')
+    # wrap(user_2, '注册牛子', comment='2 注册')
+    wrap(user_3, '注册牛子', comment='3 注册')
 
-test2()
+    # 查排名
+    wrap(user_1, '牛子排名', comment='user 1 查排名')
+    # 改名字
+    global user_1_nickname
+    user_1_nickname = '用户1新名字'
+    wrap(user_1, '牛子排名', comment='user 1 改名再查排名')
+
+test_legacy()
+test_nickname()

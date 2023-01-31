@@ -68,5 +68,8 @@
     "lock_me_negative_with_strong_person_max": 5,
 
     "##pk_guard_chinchin_length": "禁止对弱者一直pk刷长度，低于该长度的人会开启pk保护",
-    "pk_guard_chinchin_length": 5
+    "pk_guard_chinchin_length": 5,
+
+    "##ranking_list_length": "排行榜展示多少人",
+    "ranking_list_length": 8
 }

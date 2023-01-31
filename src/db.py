@@ -31,7 +31,57 @@ class MigrationHelper():
                 '[Chinchin::Deprecated]: 若使用了 scripts/database_migrate_python/migrate.py 备份脚本，默认会备份到 src/data-v1-backup 下面')
 
 
+class Sql_UserInfo():
+    @staticmethod
+    def _empty_data_handler(data: dict):
+        if data["latest_speech_nickname"] is None:
+            data['latest_speech_nickname'] = ''
+        return data
+
+    @staticmethod
+    def _sql_create_table():
+        return 'create table if not exists `info` (`qq` bigint, `latest_speech_nickname` varchar(255), `latest_speech_group` bigint, primary key (`qq`));'
+
+    @classmethod
+    def _sql_insert_single_data(cls, data: dict):
+        data = cls._empty_data_handler(data)
+        return f'insert into `info` (`latest_speech_group`, `latest_speech_nickname`, `qq`) values ({data["latest_speech_group"]}, "{data["latest_speech_nickname"]}", {data["qq"]});'
+
+    @staticmethod
+    def _sql_select_single_data(qq: int):
+        return f'select * from `info` where `qq` = {qq};'
+
+    @staticmethod
+    def _sql_check_table_exists():
+        return 'select count(*) from sqlite_master where type = "table" and name = "info";'
+
+    @classmethod
+    def _sql_update_single_data(cls, data: dict):
+        data = cls._empty_data_handler(data)
+        return f'update `info` set `latest_speech_nickname` = "{data["latest_speech_nickname"]}", `latest_speech_group` = {data["latest_speech_group"]} where `qq` = {data["qq"]};'
+
+    @staticmethod
+    def _sql_batch_select_data(qqs: list):
+        return f'select * from `info` where `qq` in {tuple(qqs)};'
+
+    @staticmethod
+    def deserialize(data: tuple):
+        return {
+            'qq': data[0],
+            'latest_speech_nickname': data[1],
+            'latest_speech_group': data[2],
+        }
+
+    @classmethod
+    def select_batch_data_by_qqs(cls, qqs: list):
+        sql_ins.cursor.execute(cls._sql_batch_select_data(qqs))
+        return [cls.deserialize(data) for data in sql_ins.cursor.fetchall()]
+
+
 class Sql():
+
+    sub_table_info = Sql_UserInfo()
+
     def __init__(self):
         self.sqlite_path = Paths.sqlite_path()
         self.conn = sqlite3.connect(self.sqlite_path)
@@ -61,6 +111,19 @@ class Sql():
     def __sql_get_data_counts():
         return 'select count(*) from `users`;'
 
+    @staticmethod
+    def __sql_order_by_length():
+        max = Config.get_config('ranking_list_length')
+        return f'select * from `users` order by `length` desc limit {max};'
+
+    @classmethod
+    def get_top_users(cls) -> list:
+        sql_ins.cursor.execute(cls.__sql_order_by_length())
+        some = sql_ins.cursor.fetchall()
+        if not some:
+            return None
+        return [cls.deserialize(one) for one in some]
+
     @classmethod
     def get_data_counts(cls) -> int:
         sql_ins.cursor.execute(cls.__sql_get_data_counts())
@@ -72,12 +135,8 @@ class Sql():
         sql_ins.cursor.execute(cls.__sql_insert_single_data(data))
         sql_ins.conn.commit()
 
-    @classmethod
-    def select_data_by_qq(cls, qq: int):
-        sql_ins.cursor.execute(cls.__sql_select_single_data(qq))
-        one = sql_ins.cursor.fetchone()
-        if one is None:
-            return None
+    @staticmethod
+    def deserialize(one: tuple):
         return {
             'qq': one[0],
             'length': one[1],
@@ -96,10 +155,29 @@ class Sql():
         }
 
     @classmethod
+    def select_data_by_qq(cls, qq: int):
+        sql_ins.cursor.execute(cls.__sql_select_single_data(qq))
+        one = sql_ins.cursor.fetchone()
+        if one is None:
+            return None
+        return cls.deserialize(one)
+
+    @classmethod
     def check_table_exists(cls):
+        # users table exists
         sql_ins.cursor.execute(cls.__sql_check_table_exists())
         one = sql_ins.cursor.fetchone()
-        return one[0] == 1
+        is_table_exists = one[0] == 1
+        if not is_table_exists:
+            sql_ins.cursor.execute(sql_ins.__sql_create_table())
+            sql_ins.conn.commit()
+        # info table exists
+        sql_ins.cursor.execute(cls.sub_table_info._sql_check_table_exists())
+        one = sql_ins.cursor.fetchone()
+        is_table_exists = one[0] == 1
+        if not is_table_exists:
+            sql_ins.cursor.execute(cls.sub_table_info._sql_create_table())
+            sql_ins.conn.commit()
 
     @classmethod
     def update_data_by_qq(cls, data: dict):
@@ -116,10 +194,7 @@ class Sql():
         if not os.path.exists(Paths.sqlite_path()):
             open(Paths.sqlite_path(), 'w').close()
         sql_ins = Sql()
-        # check `users` table exists
-        if not sql_ins.check_table_exists():
-            sql_ins.cursor.execute(sql_ins.__sql_create_table())
-            sql_ins.conn.commit()
+        sql_ins.check_table_exists()
         MigrationHelper.old_data_check()
         return sql_ins
 
@@ -127,7 +202,50 @@ class Sql():
         self.conn.close()
 
 
+class DB_UserInfo():
+    @staticmethod
+    def is_user_exists(qq: int):
+        sql_ins.cursor.execute(Sql.sub_table_info._sql_select_single_data(qq))
+        return sql_ins.cursor.fetchone() is not None
+
+    @classmethod
+    def record_user_info(cls, qq: int, data: dict):
+        data["qq"] = qq
+        is_exists = cls.is_user_exists(qq)
+        if is_exists:
+            sql_ins.cursor.execute(
+                Sql.sub_table_info._sql_update_single_data(data))
+        else:
+            sql_ins.cursor.execute(
+                Sql.sub_table_info._sql_insert_single_data(data))
+        sql_ins.conn.commit()
+
+
+class DataUtils():
+    @staticmethod
+    def __assign(data_1: dict, data_2: dict):
+        return {**data_1, **data_2}
+
+    @staticmethod
+    def __make_qq_to_data_map(data: list):
+        return {one['qq']: one for one in data}
+
+    @classmethod
+    def merge_data(cls, datas: list):
+        maps = [cls.__make_qq_to_data_map(one) for one in datas]
+        for key in maps[0].keys():
+            for i in range(1, len(maps)):
+                maps[0][key] = cls.__assign(maps[0][key], maps[i][key])
+        result = []
+        for user in datas[0]:
+            result.append(maps[0][user['qq']])
+        return result
+
+
 class DB():
+
+    sub_db_info = DB_UserInfo()
+    utils = DataUtils()
 
     @staticmethod
     def create_data(data: dict):
@@ -249,6 +367,15 @@ class DB():
         if user_data['length'] <= min_length:
             return True
         return False
+
+    @staticmethod
+    def get_top_users():
+        top_users = Sql.get_top_users()
+        qqs = [one["qq"] for one in top_users]
+        info_list = Sql.sub_table_info.select_batch_data_by_qqs(qqs)
+        merged = DB.utils.merge_data([top_users, info_list])
+        return merged
+
 
 def lazy_init_database():
     Sql.init_database()

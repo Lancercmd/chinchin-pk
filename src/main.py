@@ -11,8 +11,9 @@ KEYWORDS = {
     'lock_me': ['🔒我'],
     'lock': ['🔒', 'suo', '嗦', '锁'],
     'glue': ['打胶'],
-    'see_chinchin': ['看他牛子'],
-    'sign_up': ['注册牛子']
+    'see_chinchin': ['看他牛子', '看看牛子'],
+    'sign_up': ['注册牛子'],
+    'ranking': ['牛子排名', '牛子排行'],
 }
 
 DEFAULT_NONE_TIME = '2000-01-01 00:00:00'
@@ -23,6 +24,7 @@ def message_processor(
     qq: int,
     group: int,
     at_qq: Optional[int] = None,
+    nickname: Optional[str] = None,
     fuzzy_match: bool = False,
     impl_at_segment=None,
     impl_send_message=None
@@ -30,7 +32,6 @@ def message_processor(
     """
         main entry
         TODO: 破解牛子：被破解的 牛子 长度操作 x 100 倍
-        TODO: 查牛子排名 （ e.g. 牛子排名 ）
     """
     # lazy init database
     lazy_init_database()
@@ -47,6 +48,12 @@ def message_processor(
         global send_message
         send_message = impl_send_message
 
+    # 记录数据
+    DB.sub_db_info.record_user_info(qq, {
+        'latest_speech_group': group,
+        'latest_speech_nickname': nickname,
+    })
+
     # 注册牛子
     if match_func(KEYWORDS.get('sign_up'), message):
         return Chinchin_me.sign_up(qq, group)
@@ -59,6 +66,10 @@ def message_processor(
         ]
         send_message(qq, group, join(message_arr, '\n'))
         return
+
+    # 牛子排名
+    if match_func(KEYWORDS.get('ranking'), message):
+        return Chinchin_info.entry_ranking(qq, group)
 
     # 查询牛子信息
     if match_func(KEYWORDS.get('chinchin'), message):
@@ -100,6 +111,28 @@ def message_processor(
 
 
 class Chinchin_info():
+
+    @staticmethod
+    def entry_ranking(qq: int, group: int):
+        top_users = DB.get_top_users()
+        message_arr = [
+            '【牛子国最长大牛子】',
+        ]
+        for user in top_users:
+            idx = top_users.index(user) + 1
+            prefix = ''
+            if idx == 1:
+                prefix = '🥇'
+            elif idx == 2:
+                prefix = '🥈'
+            elif idx == 3:
+                prefix = '🥉'
+            nickname = user['latest_speech_nickname']
+            if len(nickname) == 0:
+                nickname = '无名英雄'
+            message_arr.append(
+                f'{idx}. {prefix}{nickname} 长度：{fixed_two_decimal_digits(user["length"])}cm')
+        send_message(qq, group, join(message_arr, '\n'))
 
     @staticmethod
     def entry_chinchin(qq: int, group: int):

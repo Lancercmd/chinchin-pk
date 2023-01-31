@@ -18,6 +18,12 @@ const EXAMPLE_JSON = {
   locked_time: '2023-01-25 02:26:52',
 }
 
+const USER_INFO_TABLE = {
+  qq: 123456789,
+  latest_speech_nickname: '',
+  latest_speech_group: 987654321,
+}
+
 const run = async () => {
   const DATABASE_PATH = path.join(__dirname, './data.sqlite')
   const SQL_FILE = path.join(__dirname, './data_migrate.sql')
@@ -77,6 +83,34 @@ const run = async () => {
     // get all data counts
     const countSql = await ins.table('users').count().toSQL()
     sql.push(countSql.sql)
+    // sort by length max 10
+    const sortSql = await ins('users')
+      .select('*')
+      .orderBy('length', 'desc')
+      .limit(10)
+      .toSQL()
+    sql.push(sortSql.sql)
+
+    sql.push('-- User Info Table --')
+    const createSqlWithUserInfo = await ins.schema
+      .createTableIfNotExists('info', (table) => {
+        table.bigint('qq').primary()
+        table.string('latest_speech_nickname')
+        table.bigint('latest_speech_group')
+      })
+      .toSQL()
+    // @ts-expect-error
+    sql.push(createSqlWithUserInfo[0].sql)
+    const insertSqlWithUserInfo = await ins('info')
+      .insert(USER_INFO_TABLE)
+      .toSQL()
+    sql.push(insertSqlWithUserInfo.sql)
+    const selectSqlWithUserInfo = await ins('info')
+      .select('*')
+      .where('qq', 123456789)
+      .toSQL()
+    sql.push(selectSqlWithUserInfo.sql)
+
     // write
     fs.writeFileSync(SQL_FILE, sql.join(';\n') + ';\n', 'utf-8')
   } catch (e) {
