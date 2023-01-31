@@ -110,6 +110,12 @@ const run = async () => {
       .where('qq', 123456789)
       .toSQL()
     sql.push(selectSqlWithUserInfo.sql)
+    // delete
+    const deleteSqlWithUserInfo = await ins('info')
+      .where('qq', 123456789)
+      .del()
+      .toSQL()
+    sql.push(deleteSqlWithUserInfo.sql)
 
     // write
     fs.writeFileSync(SQL_FILE, sql.join(';\n') + ';\n', 'utf-8')

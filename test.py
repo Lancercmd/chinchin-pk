@@ -1,6 +1,6 @@
 import os
 import time
-from src.db import DB
+from src.db import DB, Sql
 from src.main import message_processor, KEYWORDS
 from src.utils import get_object_values, get_now_time
 
@@ -182,16 +182,20 @@ def test_legacy():
     write_snapshot()
 
 def test_nickname():
-    # wrap(user_1, '注册牛子', comment='1 注册')
-    # wrap(user_2, '注册牛子', comment='2 注册')
+    wrap(user_1, '注册牛子', comment='1 注册')
+    wrap(user_2, '注册牛子', comment='2 注册')
     wrap(user_3, '注册牛子', comment='3 注册')
 
     # 查排名
     wrap(user_1, '牛子排名', comment='user 1 查排名')
+
+    # 删掉 user_3 的 info 表记录，模拟增量场景
+    Sql.sub_table_info.delete_single_data(user_3)
+
     # 改名字
     global user_1_nickname
     user_1_nickname = '用户1新名字'
     wrap(user_1, '牛子排名', comment='user 1 改名再查排名')
 
-test_legacy()
-test_nickname()
+# test_legacy()
+# test_nickname()

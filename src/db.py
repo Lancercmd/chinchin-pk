@@ -65,6 +65,10 @@ class Sql_UserInfo():
         return f'select * from `info` where `qq` in {tuple(qqs)};'
 
     @staticmethod
+    def _sql_delete_single_data(qq: int):
+        return f'delete from `info` where `qq` = {qq};'
+
+    @staticmethod
     def deserialize(data: tuple):
         return {
             'qq': data[0],
@@ -76,6 +80,11 @@ class Sql_UserInfo():
     def select_batch_data_by_qqs(cls, qqs: list):
         sql_ins.cursor.execute(cls._sql_batch_select_data(qqs))
         return [cls.deserialize(data) for data in sql_ins.cursor.fetchall()]
+
+    @classmethod
+    def delete_single_data(cls, qq: int):
+        sql_ins.cursor.execute(cls._sql_delete_single_data(qq))
+        sql_ins.conn.commit()
 
 
 class Sql():
@@ -235,7 +244,8 @@ class DataUtils():
         maps = [cls.__make_qq_to_data_map(one) for one in datas]
         for key in maps[0].keys():
             for i in range(1, len(maps)):
-                maps[0][key] = cls.__assign(maps[0][key], maps[i][key])
+                if key in maps[i]:
+                    maps[0][key] = cls.__assign(maps[0][key], maps[i][key])
         result = []
         for user in datas[0]:
             result.append(maps[0][user['qq']])

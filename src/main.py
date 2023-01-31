@@ -127,6 +127,8 @@ class Chinchin_info():
                 prefix = '🥈'
             elif idx == 3:
                 prefix = '🥉'
+            if 'latest_speech_nickname' not in user:
+                user['latest_speech_nickname'] = ''
             nickname = user['latest_speech_nickname']
             if len(nickname) == 0:
                 nickname = '无名英雄'
