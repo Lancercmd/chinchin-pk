@@ -1,15 +1,9 @@
 from .config import Config
 
-cache = {
-    'config': None
-}
-
 
 class RebirthSystem_View():
     @staticmethod
     def get_rebirth_config():
-        if cache['config'] is not None:
-            return cache['config']
         config = Config.get_config('rebirth')
         levels = config['levels']
         # sort by level
@@ -23,7 +17,6 @@ class RebirthSystem_View():
                 prev_level_acc_need_length = levels[i-1]['acc_need_length']
                 levels[i]['acc_need_length'] = current_level_cost_length + \
                     prev_level_acc_need_length
-        cache['config'] = levels
         return levels
 
     @classmethod
