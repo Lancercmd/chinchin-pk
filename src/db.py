@@ -360,6 +360,12 @@ class DB_Badge():
     def get_badge_data(qq: int):
         return Sql_badge.select_single_data(qq)
 
+    @staticmethod
+    def update_badge_ids(qq: int, badge_ids: list):
+        data = Sql_badge.select_single_data(qq)
+        data['badge_ids'] = badge_ids
+        Sql_badge.update_single_data(data)
+
 
 class Sql():
 
@@ -711,7 +717,8 @@ class DB():
                 'qq': one['qq'],
                 'badge_ids': one['badge_ids']
             })
-        merged = DB.utils.merge_data_list([top_users, info_list, rebirth_list, badge_list_picked])
+        merged = DB.utils.merge_data_list(
+            [top_users, info_list, rebirth_list, badge_list_picked])
         return merged
 
 

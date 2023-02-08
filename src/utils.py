@@ -71,3 +71,11 @@ def get_object_values(obj: dict):
         else:
             ret.append(v)
     return ret
+
+
+def is_number(s):
+    try:
+        float(s)
+        return True
+    except ValueError:
+        pass

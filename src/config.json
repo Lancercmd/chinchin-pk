@@ -137,7 +137,7 @@
         "description": "它说，可以上了",
 
         "##priority": "成就优先级，数字越大，展示时越靠前",
-        "priority": 10,
+        "priority": 100,
 
         "##condition": "成就达成条件",
         "condition": {
@@ -173,6 +173,19 @@
 
           "##lock_weight": "锁时的加成",
           "##glue_weight": "打胶时的加成"
+        }
+      },
+      {
+        "id": 2,
+        "name": "打胶大师",
+        "description": "精湛的打胶要有仪式感",
+        "priority": 90,
+        "condition": {
+          "glue_plus_count": ">=50",
+          "glue_plus_length_total": ">=100"
+        },
+        "addition": {
+          "glue_weight": ["10%", 1]
         }
       }
     ]

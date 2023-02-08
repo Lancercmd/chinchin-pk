@@ -24,12 +24,15 @@ class Config():
             return cache
 
     @staticmethod
-    def modify_config_in_runtime(key: str, value):
+    def modify_config_in_runtime(key: str = None, value = None, callback=None):
         """
           for test only
         """
         global cache
-        cache[key] = value
+        if callback:
+            cache = callback(cache)
+        else:
+            cache[key] = value
 
     @classmethod
     def get_config(cls, key: str):

@@ -308,6 +308,33 @@ def test_badge():
     data = Sql.sub_table_badge.select_single_data(user_1)
     wrap_print_only('检查数据库', data)
 
+    # 模拟 user 2 pk 获得一个成就
+    wrap(user_1, '牛子成就', comment='1 查成就，没有东西')
+    wrap(user_1, 'pk', at_qq=user_2, comment='1 pk 2 失败，没有任何反应')
+    user_2_badge_data = Sql.sub_table_badge.select_single_data(user_2)
+    user_2_badge_data['pk_win_count'] = 49
+    user_2_badge_data['pk_plus_length_total'] = 50
+    Sql.sub_table_badge.update_single_data(user_2_badge_data)
+
+    wrap(user_2, '牛子', comment='2 查信息，没有成就')
+    wrap(user_2, 'pk', at_qq=user_1, comment='2 pk 1 第一次')
+    wrap(user_2, 'pk', at_qq=user_1, comment='2 pk 1 第二次，获取成就')
+
+    wrap(user_2, '牛子成就', comment='2 查成就')
+    wrap(user_2, '牛子', comment='2 查信息，有成就')
+    wrap(user_2, '牛子排名', comment='2 查排名')
+
+    # 模拟 user 3 一下子获得两个成就
+    wrap(user_3, '注册牛子', comment='3 注册')
+    wrap(user_3, '牛子成就', comment='3 查成就，没有东西')
+    user_3_badge_data = Sql.sub_table_badge.select_single_data(user_3)
+    user_3_badge_data['pk_win_count'] = 50
+    user_3_badge_data['pk_plus_length_total'] = 50
+    user_3_badge_data['glue_plus_count'] = 50
+    user_3_badge_data['glue_plus_length_total'] = 150
+    Sql.sub_table_badge.update_single_data(user_3_badge_data)
+    wrap(user_3, '牛子', comment='3 查信息，此时获得了成就')
+    wrap(user_3, '牛子成就', comment='3 查成就')
 
 if __name__ == '__main__':
     clear_database()
@@ -328,4 +355,4 @@ if __name__ == '__main__':
     if arg('--badge'):
         test_badge()
 
-    write_snapshot()
+    # write_snapshot()

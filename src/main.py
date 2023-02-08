@@ -49,13 +49,36 @@ def message_processor(
     message = message.strip()
     match_func = create_match_func_factory(fuzzy=fuzzy_match)
 
-    # hack impl
+    # hack at impl
     if impl_at_segment:
         global get_at_segment
         get_at_segment = impl_at_segment
-    if impl_send_message:
-        global send_message
-        send_message = impl_send_message
+
+    # 消息上下文，用于追加消息
+    msg_ctx = {
+        "before": [get_at_segment(qq)],
+        "after": []
+    }
+    # hack send message impl
+    # hook send_message
+    def create_send_message_hook(origin_send_message):
+        def send_message_hook(qq, group, message):
+            before = join(msg_ctx['before'], '\n')
+            content = None
+            after = join(msg_ctx['after'], '\n')
+            # is string
+            if isinstance(message, str):
+                content = message
+            # is list
+            elif isinstance(message, list):
+                content = join(message, '\n')
+            text = join([before, content, after], '\n')
+            origin_send_message(qq, group, text)
+        return send_message_hook
+    global send_message
+    if not impl_send_message:
+        impl_send_message = send_message
+    send_message = create_send_message_hook(impl_send_message)
 
     # 记录数据 - info
     DB.sub_db_info.record_user_info(qq, {
@@ -65,25 +88,7 @@ def message_processor(
     # 记录数据 - badge
     DB.sub_db_badge.init_user_data(qq)
 
-    # 消息上下文，用于追加消息
-    msg_ctx = {
-        "before": [get_at_segment(qq)],
-        "after": []
-    }
-    # hook send_message
-    def send_message_hook(qq, group, message):
-        before = join(msg_ctx['before'], '\n')
-        content = None
-        after = join(msg_ctx['after'], '\n')
-        # is string
-        if isinstance(message, str):
-            content = message
-        # is list
-        elif isinstance(message, list):
-            content = join(message, '\n')
-        text = join([before, content, after], '\n')
-        send_message(qq, group, text)
-    send_message = send_message_hook
+    
 
     # 注册牛子
     if match_func(KEYWORDS.get('sign_up'), message):
@@ -96,6 +101,11 @@ def message_processor(
         ]
         send_message(qq, group, join(message_arr, '\n'))
         return
+
+    # 检查成就
+    badge_msg = BadgeSystem.check_whether_get_new_badge(qq)
+    if badge_msg:
+        msg_ctx['after'].append(badge_msg)
 
     # 牛子排名
     if match_func(KEYWORDS.get('ranking'), message):
