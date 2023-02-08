@@ -4,6 +4,7 @@ from .utils import create_match_func_factory, join, get_now_time, fixed_two_deci
 from .config import Config
 from .cd import CD_Check
 from .rebirth import RebirthSystem
+from .badge import BadgeSystem
 from typing import Optional
 
 KEYWORDS = {
@@ -64,6 +65,26 @@ def message_processor(
     # 记录数据 - badge
     DB.sub_db_badge.init_user_data(qq)
 
+    # 消息上下文，用于追加消息
+    msg_ctx = {
+        "before": [get_at_segment(qq)],
+        "after": []
+    }
+    # hook send_message
+    def send_message_hook(qq, group, message):
+        before = join(msg_ctx['before'], '\n')
+        content = None
+        after = join(msg_ctx['after'], '\n')
+        # is string
+        if isinstance(message, str):
+            content = message
+        # is list
+        elif isinstance(message, list):
+            content = join(message, '\n')
+        text = join([before, content, after], '\n')
+        send_message(qq, group, text)
+    send_message = send_message_hook
+
     # 注册牛子
     if match_func(KEYWORDS.get('sign_up'), message):
         return Chinchin_me.sign_up(qq, group)
@@ -71,7 +92,6 @@ def message_processor(
     # 下面的逻辑必须有牛子
     if not DB.is_registered(qq):
         message_arr = [
-            get_at_segment(qq),
             '你还没有牛子！'
         ]
         send_message(qq, group, join(message_arr, '\n'))
@@ -98,7 +118,6 @@ def message_processor(
     if at_qq:
         if not DB.is_registered(at_qq):
             message_arr = [
-                get_at_segment(qq),
                 '对方还没有牛子！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -193,6 +212,11 @@ class Chinchin_info():
             nickname = user['latest_speech_nickname']
             if len(nickname) == 0:
                 nickname = '无名英雄'
+            badge = BadgeSystem.get_first_badge_by_badge_string_arr(
+                user.get('badge_ids')
+            )
+            if badge:
+                nickname = f'【{badge}】{nickname}'
             length_label = Chinchin_view.length_label(
                 length=user.get('length'), level=user.get('level'), need_level_label=True)
             message_arr.append(
@@ -219,9 +243,14 @@ class ChinchinInternal():
     def internal_get_chinchin_info(qq: int):
         user_data = DB.load_data(qq)
         message_arr = [
-            get_at_segment(qq),
             '【牛子信息】',
         ]
+        # badge
+        badge_label = BadgeSystem.get_badge_label_by_qq(qq)
+        if badge_label is not None:
+            message_arr.append(
+                f'成就: {badge_label}'
+            )
         length_label = Chinchin_view.length_label(
             length=user_data.get('length'),
             level=user_data.get('level'),
@@ -293,7 +322,6 @@ class Chinchin_me():
         is_today_limited = DB.is_lock_daily_limited(qq)
         if is_today_limited:
             message_arr = [
-                get_at_segment(qq),
                 '你的牛子今天太累了，改天再来吧！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -302,7 +330,6 @@ class Chinchin_me():
         is_in_cd = CD_Check.is_lock_in_cd(qq)
         if is_in_cd:
             message_arr = [
-                get_at_segment(qq),
                 '歇一会吧，嘴都麻了！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -318,13 +345,11 @@ class Chinchin_me():
                 # not need weighting
                 DB.length_decrease(qq, punish_value)
                 message_arr = [
-                    get_at_segment(qq),
                     '你的牛子还不够长，你🔒不着，牛子自尊心受到了伤害，缩短了{}厘米'.format(punish_value)
                 ]
                 send_message(qq, group, join(message_arr, '\n'))
             else:
                 message_arr = [
-                    get_at_segment(qq),
                     '你的牛子太小了，还🔒不到'
                 ]
                 send_message(qq, group, join(message_arr, '\n'))
@@ -344,7 +369,6 @@ class Chinchin_me():
                 DB.sub_db_badge.record_lock_punish_length_total(
                     qq, punish_value)
                 message_arr = [
-                    get_at_segment(qq),
                     '你的牛子太长了，没🔒住爆炸了，缩短了{}厘米'.format(punish_value)
                 ]
                 send_message(qq, group, join(message_arr, '\n'))
@@ -360,7 +384,6 @@ class Chinchin_me():
                 DB.sub_db_badge.record_lock_plus_length_total(qq, plus_value)
                 # TODO: 🔒自己效果有加成
                 message_arr = [
-                    get_at_segment(qq),
                     '🔒的很卖力很舒服，你的牛子增加了{}厘米'.format(plus_value)
                 ]
                 send_message(qq, group, join(message_arr, '\n'))
@@ -371,7 +394,6 @@ class Chinchin_me():
         is_today_limited = DB.is_glue_daily_limited(qq)
         if is_today_limited:
             message_arr = [
-                get_at_segment(qq),
                 '牛子快被你冲炸了，改天再来冲吧！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -380,7 +402,6 @@ class Chinchin_me():
         is_in_cd = CD_Check.is_glue_in_cd(qq)
         if is_in_cd:
             message_arr = [
-                get_at_segment(qq),
                 '你刚打了一胶，歇一会吧！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -399,7 +420,6 @@ class Chinchin_me():
             # record record_glue_punish_length_total to qq
             DB.sub_db_badge.record_glue_punish_length_total(qq, punish_value)
             message_arr = [
-                get_at_segment(qq),
                 '打胶结束，牛子快被冲爆炸了，减小{}厘米'.format(punish_value)
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -414,7 +434,6 @@ class Chinchin_me():
             # record record_glue_plus_length_total to qq
             DB.sub_db_badge.record_glue_plus_length_total(qq, plus_value)
             message_arr = [
-                get_at_segment(qq),
                 '牛子对你的付出很满意吗，增加{}厘米'.format(plus_value)
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -423,7 +442,6 @@ class Chinchin_me():
     def sign_up(qq: int, group: int):
         if DB.is_registered(qq):
             message_arr = [
-                get_at_segment(qq),
                 '你已经有牛子了！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -448,7 +466,6 @@ class Chinchin_me():
         }
         DB.create_data(new_user)
         message_arr = [
-            get_at_segment(qq),
             '你是第{}位拥有牛子的人，当前长度：{}厘米，请好好善待它！'.format(
                 DB.get_data_counts(),
                 fixed_two_decimal_digits(new_length),
@@ -464,7 +481,6 @@ class Chinchin_with_target():
         # 不能 pk 自己
         if qq == at_qq:
             message_arr = [
-                get_at_segment(qq),
                 '你不能和自己的牛子进行较量！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -473,7 +489,6 @@ class Chinchin_with_target():
         is_today_limited = DB.is_pk_daily_limited(qq)
         if is_today_limited:
             message_arr = [
-                get_at_segment(qq),
                 '战斗太多次牛子要虚脱了，改天再来吧！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -482,7 +497,6 @@ class Chinchin_with_target():
         is_in_cd = CD_Check.is_pk_in_cd(qq)
         if is_in_cd:
             message_arr = [
-                get_at_segment(qq),
                 '牛子刚结束战斗，歇一会吧！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -491,7 +505,6 @@ class Chinchin_with_target():
         is_target_protected = DB.is_pk_protected(at_qq)
         if is_target_protected:
             message_arr = [
-                get_at_segment(qq),
                 '对方快没有牛子了，行行好吧！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -526,7 +539,6 @@ class Chinchin_with_target():
             # record record_pk_plus_length_total to qq
             DB.sub_db_badge.record_pk_plus_length_total(qq, user_plus_value)
             message_arr = [
-                get_at_segment(qq),
                 'pk成功了，对面牛子不值一提，你的是最棒的，牛子获得自信增加了{}厘米，对面牛子减小了{}厘米'.format(
                     user_plus_value, target_punish_value)
             ]
@@ -543,7 +555,6 @@ class Chinchin_with_target():
             DB.sub_db_badge.record_pk_punish_length_total(
                 qq, user_punish_value)
             message_arr = [
-                get_at_segment(qq),
                 'pk失败了，在对面牛子的阴影笼罩下，你的牛子减小了{}厘米，对面牛子增加了{}厘米'.format(
                     user_punish_value, target_plus_value)
             ]
@@ -560,7 +571,6 @@ class Chinchin_with_target():
         is_today_limited = DB.is_lock_daily_limited(qq)
         if is_today_limited:
             message_arr = [
-                get_at_segment(qq),
                 '别🔒了，要口腔溃疡了，改天再🔒吧！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -569,7 +579,6 @@ class Chinchin_with_target():
         is_in_cd = CD_Check.is_lock_in_cd(qq)
         if is_in_cd:
             message_arr = [
-                get_at_segment(qq),
                 '歇一会吧，嘴都麻了！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -588,7 +597,6 @@ class Chinchin_with_target():
         # record record_lock_plus_length_total to qq
         DB.sub_db_badge.record_lock_plus_length_total(qq, target_plus_value)
         message_arr = [
-            get_at_segment(qq),
             '🔒的很卖力很舒服，对方牛子增加了{}厘米'.format(target_plus_value)
         ]
         send_message(qq, group, join(message_arr, '\n'))
@@ -603,7 +611,6 @@ class Chinchin_with_target():
         is_today_limited = DB.is_glue_daily_limited(qq)
         if is_today_limited:
             message_arr = [
-                get_at_segment(qq),
                 '你今天帮太多人打胶了，改天再来吧！ '
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -612,7 +619,6 @@ class Chinchin_with_target():
         is_in_cd = CD_Check.is_glue_in_cd(qq)
         if is_in_cd:
             message_arr = [
-                get_at_segment(qq),
                 '你刚打了一胶，歇一会吧！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -634,7 +640,6 @@ class Chinchin_with_target():
             DB.sub_db_badge.record_glue_punish_length_total(
                 qq, target_punish_value)
             message_arr = [
-                get_at_segment(qq),
                 '对方牛子快被大家冲坏了，减小{}厘米'.format(target_punish_value)
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -650,7 +655,6 @@ class Chinchin_with_target():
             DB.sub_db_badge.record_glue_plus_length_total(
                 qq, target_plus_value)
             message_arr = [
-                get_at_segment(qq),
                 '你的打胶让对方牛子感到很舒服，对方牛子增加{}厘米'.format(target_plus_value)
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -664,7 +668,6 @@ class Chinchin_upgrade():
         info = RebirthSystem.get_rebirth_info(qq)
         if info['can_rebirth'] is False:
             message_arr = [
-                get_at_segment(qq),
                 '你和牛子四目相对，牛子摇了摇头，说下次一定！'
             ]
             send_message(qq, group, join(message_arr, '\n'))
@@ -676,7 +679,6 @@ class Chinchin_upgrade():
             punish_length = info['failed_info']['failed_punish_length']
             DB.length_decrease(qq, punish_length)
             message_arr = [
-                get_at_segment(qq),
                 '细数牛界之中，贸然渡劫者九牛一生，牛子失去荔枝爆炸了，减小{}厘米'.format(
                     punish_length)
             ]
@@ -694,7 +696,6 @@ class Chinchin_upgrade():
         else:
             DB.sub_db_rebirth.update_rebirth_data(rebirth_data)
         message_arr = [
-            get_at_segment(qq),
             '你为了强度已经走了太远，却忘记当初为什么而出发，电光石火间飞升为【{}】！'.format(
                 info['next_level_info']['name'])
         ]
@@ -706,4 +707,10 @@ class Chinchin_badge():
 
     @staticmethod
     def entry_badge(qq: int, group: int):
-        pass
+        badge_view = BadgeSystem.get_badge_view(qq)
+        message_arr = []
+        if badge_view is None:
+            message_arr.append('现在是幻想时间')
+        else:
+            message_arr.append(badge_view)
+        send_message(qq, group, join(message_arr, '\n'))

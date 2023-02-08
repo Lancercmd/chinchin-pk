@@ -124,5 +124,57 @@
         "fail_negative_max": 240
       }
     ]
+  },
+
+  "##badge": "成就配置",
+  "badge": {
+    "categories": [
+      {
+        "##id": "成就id，不要改已有id的值，这是唯一id，改了会破坏数据库",
+        "id": 1,
+
+        "name": "牛子掠夺者",
+        "description": "它说，可以上了",
+
+        "##priority": "成就优先级，数字越大，展示时越靠前",
+        "priority": 10,
+
+        "##condition": "成就达成条件",
+        "condition": {
+          "##": "以 ## 开头的字段不会被作为条件，可以算注释",
+          "##operator": "运算符说明：目前只支持配两种运算符，> 和 >= ，如 > 100，>= 100",
+          
+          "##glue_me_count": "给自己打胶次数",
+          "##glue_target_count": "给别人打胶次数",
+          "##glue_plus_count": "打胶成功次数",
+          "##glue_plus_length_total": "打胶总增加长度",
+          "##glue_punish_count": "打胶失败次数",
+          "##glue_punish_length_total": "打胶总减少长度",
+
+          "##pk_win_count": "pk成功次数",
+          "pk_win_count": ">=50",
+          "##pk_lose_count": "pk失败次数",
+          "##pk_plus_length_total": "pk总增加长度",
+          "pk_plus_length_total": ">=50",
+          "##pk_punish_length_total": "pk总减少长度",
+
+          "##lock_me_count": "锁自己次数",
+          "##lock_target_count": "锁别人次数",
+          "##lock_plus_count": "锁成功次数",
+          "##lock_punish_count": "锁失败次数",
+          "##lock_plus_length_total": "锁带来的总增加长度",
+          "##lock_punish_length_total": "锁带来的总减少长度"
+        },
+        "addition": {
+          "##operator": "运算符说明：支持两种加成条件，% 结尾的是加成比例，比如 10% ，100% ；数字的话就是固定值，比如 10, 20",
+
+          "##pk_weight": "pk时的加成",
+          "pk_weight": ["10%", 1],
+
+          "##lock_weight": "锁时的加成",
+          "##glue_weight": "打胶时的加成"
+        }
+      }
+    ]
   }
 }
