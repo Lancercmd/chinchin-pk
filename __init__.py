@@ -21,6 +21,7 @@ __doc__ = f"""牛子系统 v{__version__}
         "/".join(KEYWORDS.get("sign_up")),
         "/".join(KEYWORDS.get("ranking")),
         "/".join(KEYWORDS.get("rebirth")),
+        "/".join(KEYWORDS.get("badge")),
     ]
 )
 config = jconfig.get_configuration("chinchin_system")
