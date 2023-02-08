@@ -16,6 +16,7 @@ KEYWORDS = {
     'sign_up': ['注册牛子'],
     'ranking': ['牛子排名', '牛子排行'],
     'rebirth': ['牛子转生'],
+    'badge': ['牛子成就']
 }
 
 DEFAULT_NONE_TIME = '2000-01-01 00:00:00'
@@ -37,6 +38,8 @@ def message_processor(
         TODO: 不同群不同的配置参数
         TODO: 成就系统
         TODO: 转生级别不同不能较量
+        TODO: 牛子最小排行
+        TODO: 牛子成就
     """
     # lazy init database
     lazy_init_database()
@@ -53,11 +56,13 @@ def message_processor(
         global send_message
         send_message = impl_send_message
 
-    # 记录数据
+    # 记录数据 - info
     DB.sub_db_info.record_user_info(qq, {
         'latest_speech_group': group,
         'latest_speech_nickname': nickname,
     })
+    # 记录数据 - badge
+    DB.sub_db_badge.init_user_data(qq)
 
     # 注册牛子
     if match_func(KEYWORDS.get('sign_up'), message):
@@ -79,6 +84,10 @@ def message_processor(
     # 牛子转生
     if match_func(KEYWORDS.get('rebirth'), message):
         return Chinchin_upgrade.entry_rebirth(qq, group)
+
+    # 牛子成就
+    if match_func(KEYWORDS.get('badge'), message):
+        return Chinchin_badge.entry_badge(qq, group)
 
     # 查询牛子信息
     # FIXME: 注意因为是模糊匹配，所以 “牛子” 的命令要放到所有 "牛子xxx" 命令的最后
@@ -320,6 +329,8 @@ class Chinchin_me():
                 ]
                 send_message(qq, group, join(message_arr, '\n'))
         else:
+            # record record_lock_me_count to qq
+            DB.sub_db_badge.record_lock_me_count(qq)
             # FIXME: 因为🔒自己回报高，这样会导致强者一直🔒自己，越强，所以需要一种小概率制裁机制。
             is_lock_failed = Config.is_hit(
                 'lock_me_negative_prob_with_strong_person')
@@ -327,6 +338,11 @@ class Chinchin_me():
                 punish_value = Config.get_lock_punish_with_strong_person_value()
                 # not need weighting
                 DB.length_decrease(qq, punish_value)
+                # record record_lock_punish_count to qq
+                DB.sub_db_badge.record_lock_punish_count(qq)
+                # record record_lock_punish_length_total to qq
+                DB.sub_db_badge.record_lock_punish_length_total(
+                    qq, punish_value)
                 message_arr = [
                     get_at_segment(qq),
                     '你的牛子太长了，没🔒住爆炸了，缩短了{}厘米'.format(punish_value)
@@ -338,6 +354,10 @@ class Chinchin_me():
                 )
                 # weighting from qq
                 DB.length_increase(qq, plus_value)
+                # record record_lock_plus_count to qq
+                DB.sub_db_badge.record_lock_plus_count(qq)
+                # record record_lock_plus_length_total to qq
+                DB.sub_db_badge.record_lock_plus_length_total(qq, plus_value)
                 # TODO: 🔒自己效果有加成
                 message_arr = [
                     get_at_segment(qq),
@@ -367,11 +387,17 @@ class Chinchin_me():
             return
         DB.record_time(qq, 'glueing_time')
         DB.count_glue_daily(qq)
+        # record record_glue_me_count to qq
+        DB.sub_db_badge.record_glue_me_count(qq)
         is_glue_failed = Config.is_hit('glue_self_negative_prob')
         if is_glue_failed:
             punish_value = Config.get_glue_self_punish_value()
             # not need weighting
             DB.length_decrease(qq, punish_value)
+            # record record_glue_punish_count to qq
+            DB.sub_db_badge.record_glue_punish_count(qq)
+            # record record_glue_punish_length_total to qq
+            DB.sub_db_badge.record_glue_punish_length_total(qq, punish_value)
             message_arr = [
                 get_at_segment(qq),
                 '打胶结束，牛子快被冲爆炸了，减小{}厘米'.format(punish_value)
@@ -383,6 +409,10 @@ class Chinchin_me():
             )
             # weighting from qq
             DB.length_increase(qq, plus_value)
+            # record record_glue_plus_count to qq
+            DB.sub_db_badge.record_glue_plus_count(qq)
+            # record record_glue_plus_length_total to qq
+            DB.sub_db_badge.record_glue_plus_length_total(qq, plus_value)
             message_arr = [
                 get_at_segment(qq),
                 '牛子对你的付出很满意吗，增加{}厘米'.format(plus_value)
@@ -491,6 +521,10 @@ class Chinchin_with_target():
             DB.length_increase(qq, user_plus_value)
             # weighting from qq
             DB.length_decrease(at_qq, target_punish_value)
+            # record pk_win_count to qq
+            DB.sub_db_badge.record_pk_win_count(qq)
+            # record record_pk_plus_length_total to qq
+            DB.sub_db_badge.record_pk_plus_length_total(qq, user_plus_value)
             message_arr = [
                 get_at_segment(qq),
                 'pk成功了，对面牛子不值一提，你的是最棒的，牛子获得自信增加了{}厘米，对面牛子减小了{}厘米'.format(
@@ -503,6 +537,11 @@ class Chinchin_with_target():
             # not need weighting
             DB.length_decrease(qq, user_punish_value)
             DB.length_increase(at_qq, target_plus_value)
+            # record pk_lose_count to qq
+            DB.sub_db_badge.record_pk_lose_count(qq)
+            # record record_pk_punish_length_total to qq
+            DB.sub_db_badge.record_pk_punish_length_total(
+                qq, user_punish_value)
             message_arr = [
                 get_at_segment(qq),
                 'pk失败了，在对面牛子的阴影笼罩下，你的牛子减小了{}厘米，对面牛子增加了{}厘米'.format(
@@ -542,6 +581,12 @@ class Chinchin_with_target():
         DB.length_increase(at_qq, target_plus_value)
         DB.record_time(at_qq, 'locked_time')
         DB.count_lock_daily(qq)
+        # record record_lock_target_count to qq
+        DB.sub_db_badge.record_lock_target_count(qq)
+        # record record_lock_plus_count to qq
+        DB.sub_db_badge.record_lock_plus_count(qq)
+        # record record_lock_plus_length_total to qq
+        DB.sub_db_badge.record_lock_plus_length_total(qq, target_plus_value)
         message_arr = [
             get_at_segment(qq),
             '🔒的很卖力很舒服，对方牛子增加了{}厘米'.format(target_plus_value)
@@ -574,6 +619,8 @@ class Chinchin_with_target():
             return
         DB.record_time(at_qq, 'glued_time')
         DB.count_glue_daily(qq)
+        # record record_glue_target_count to qq
+        DB.sub_db_badge.record_glue_target_count(qq)
         is_glue_failed = Config.is_hit('glue_negative_prob')
         if is_glue_failed:
             target_punish_value = Chinchin_intercepor.length_operate(
@@ -581,6 +628,11 @@ class Chinchin_with_target():
             )
             # weighting from qq
             DB.length_decrease(at_qq, target_punish_value)
+            # record record_glue_punish_count to qq
+            DB.sub_db_badge.record_glue_punish_count(qq)
+            # record record_glue_punish_length_total to qq
+            DB.sub_db_badge.record_glue_punish_length_total(
+                qq, target_punish_value)
             message_arr = [
                 get_at_segment(qq),
                 '对方牛子快被大家冲坏了，减小{}厘米'.format(target_punish_value)
@@ -592,6 +644,11 @@ class Chinchin_with_target():
             )
             # weighting from qq
             DB.length_increase(at_qq, target_plus_value)
+            # record record_glue_plus_count to qq
+            DB.sub_db_badge.record_glue_plus_count(qq)
+            # record record_glue_plus_length_total to at_qq
+            DB.sub_db_badge.record_glue_plus_length_total(
+                qq, target_plus_value)
             message_arr = [
                 get_at_segment(qq),
                 '你的打胶让对方牛子感到很舒服，对方牛子增加{}厘米'.format(target_plus_value)
@@ -643,3 +700,10 @@ class Chinchin_upgrade():
         ]
         send_message(qq, group, join(message_arr, '\n'))
         return
+
+
+class Chinchin_badge():
+
+    @staticmethod
+    def entry_badge(qq: int, group: int):
+        pass

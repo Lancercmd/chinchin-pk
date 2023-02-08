@@ -31,6 +31,18 @@ class bcolors:
 
 snapshot = []
 
+def wrap_print_only(title: str, comment):
+    print(bcolors.OKGREEN + "------" + title + "------" + bcolors.ENDC)
+    is_string = isinstance(comment, str)
+    if is_string:
+        print(comment)
+        snapshot.append(comment)
+    else:
+        # dict to string
+        dictToString = '\n'.join([f'{key}: {value}' for (key, value) in comment.items()])
+        print(dictToString)
+        snapshot.append(dictToString)
+        
 
 def wrap(user: int, message: str, at_qq: int = None, comment: str = None):
     if comment:
@@ -268,6 +280,34 @@ def test_rebirth():
     wrap(user_3, '打胶', comment='user 3 打胶')
     wrap(user_3, '牛子', comment='user 3 查信息')
 
+def test_badge():
+    wrap(user_1, '注册牛子', comment='1 注册')
+    wrap(user_2, '注册牛子', comment='2 注册')
+
+    # lock
+    data = DB.load_data(user_1)
+    data['length'] = 50
+    DB.write_data(data)
+    wrap(user_1, '🔒我', comment='1 锁自己 + 1')
+    wrap(user_1, '🔒我', comment='1 锁自己 + 2')
+    wrap(user_1, '🔒我', comment='1 锁自己 + 3')
+    wrap(user_1, '锁', at_qq=user_2, comment='1 锁 2')
+
+    # glue
+    wrap(user_1, '打胶', comment='1 打胶自己')
+    wrap(user_1, '打胶', at_qq=user_2, comment='1 打胶 2')
+
+    # pk
+    wrap(user_1, 'pk', at_qq=user_2, comment='1 pk 2 成功')
+    data = DB.load_data(user_2)
+    data['length'] = 1000
+    DB.write_data(data)
+    wrap(user_1, 'pk', at_qq=user_2, comment='1 pk 2 失败')
+
+    # data check
+    data = Sql.sub_table_badge.select_single_data(user_1)
+    wrap_print_only('检查数据库', data)
+
 
 if __name__ == '__main__':
     clear_database()
@@ -283,5 +323,9 @@ if __name__ == '__main__':
     # args: --rebirth
     if arg('--rebirth'):
         test_rebirth()
+
+    # args: --badge
+    if arg('--badge'):
+        test_badge()
 
     write_snapshot()

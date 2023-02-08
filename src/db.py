@@ -168,46 +168,236 @@ class DB_Rebirth():
         Sql_rebirth.update_single_data(data)
 
 
+class Sql_badge():
+
+    @staticmethod
+    def _sql_create_table():
+        return 'create table if not exists `badge` (`qq` bigint, `badge_ids` varchar(255), `glue_me_count` bigint, `glue_target_count` bigint, `glue_plus_count` bigint, `glue_plus_length_total` bigint, `glue_punish_count` bigint, `glue_punish_length_total` bigint, `pk_win_count` bigint, `pk_lose_count` bigint, `pk_plus_length_total` bigint, `pk_punish_length_total` bigint, `lock_me_count` bigint, `lock_target_count` bigint, `lock_plus_count` bigint, `lock_punish_count` bigint, `lock_plus_length_total` bigint, `lock_punish_length_total` bigint, primary key (`qq`));'
+
+    @staticmethod
+    def _sql_insert_single_data(data: dict):
+        return f'insert into `badge` (`qq`, `badge_ids`, `glue_me_count`, `glue_target_count`, `glue_plus_count`, `glue_plus_length_total`, `glue_punish_count`, `glue_punish_length_total`, `pk_win_count`, `pk_lose_count`, `pk_plus_length_total`, `pk_punish_length_total`, `lock_me_count`, `lock_target_count`, `lock_plus_count`, `lock_punish_count`, `lock_plus_length_total`, `lock_punish_length_total`) values ({data["qq"]}, :badge_ids, :glue_me_count, :glue_target_count, :glue_plus_count, :glue_plus_length_total, :glue_punish_count, :glue_punish_length_total, :pk_win_count, :pk_lose_count, :pk_plus_length_total, :pk_punish_length_total, :lock_me_count, :lock_target_count, :lock_plus_count, :lock_punish_count, :lock_plus_length_total, :lock_punish_length_total);'
+
+    @staticmethod
+    def _sql_select_single_data(qq: int):
+        return f'select * from `badge` where `qq` = {qq};'
+
+    @staticmethod
+    def _sql_batch_select_data(qqs: list):
+        return f'select * from `badge` where `qq` in {tuple(qqs)};'
+
+    @staticmethod
+    def _sql_update_single_data(data: dict):
+        return f'update `badge` set `badge_ids` = :badge_ids, `glue_me_count` = :glue_me_count, `glue_target_count` = :glue_target_count, `glue_plus_count` = :glue_plus_count, `glue_plus_length_total` = :glue_plus_length_total, `glue_punish_count` = :glue_punish_count, `glue_punish_length_total` = :glue_punish_length_total, `pk_win_count` = :pk_win_count, `pk_lose_count` = :pk_lose_count, `pk_plus_length_total` = :pk_plus_length_total, `pk_punish_length_total` = :pk_punish_length_total, `lock_me_count` = :lock_me_count, `lock_target_count` = :lock_target_count, `lock_plus_count` = :lock_plus_count, `lock_punish_count` = :lock_punish_count, `lock_plus_length_total` = :lock_plus_length_total, `lock_punish_length_total` = :lock_punish_length_total where `qq` = {data["qq"]};'
+
+    @staticmethod
+    def _sql_delete_single_data(qq: int):
+        return f'delete from `badge` where `qq` = {qq};'
+
+    @staticmethod
+    def _sql_check_table_exist():
+        return 'select count(*) from sqlite_master where type = "table" and name = "badge";'
+
+    @staticmethod
+    def deserialize(data: tuple):
+        return {
+            "qq": data[0],
+            "badge_ids": data[1],
+            "glue_me_count": data[2],
+            "glue_target_count": data[3],
+            "glue_plus_count": data[4],
+            "glue_plus_length_total": data[5],
+            "glue_punish_count": data[6],
+            "glue_punish_length_total": data[7],
+            "pk_win_count": data[8],
+            "pk_lose_count": data[9],
+            "pk_plus_length_total": data[10],
+            "pk_punish_length_total": data[11],
+            "lock_me_count": data[12],
+            "lock_target_count": data[13],
+            "lock_plus_count": data[14],
+            "lock_punish_count": data[15],
+            "lock_plus_length_total": data[16],
+            "lock_punish_length_total": data[17],
+        }
+
+    @classmethod
+    def select_single_data(cls, qq: int):
+        sql_ins.cursor.execute(cls._sql_select_single_data(qq))
+        one = sql_ins.cursor.fetchone()
+        if one is None:
+            return None
+        return cls.deserialize(one)
+
+    @classmethod
+    def insert_single_data(cls, data: dict):
+        sql_ins.cursor.execute(cls._sql_insert_single_data(data), data)
+        sql_ins.conn.commit()
+
+    @classmethod
+    def update_single_data(cls, data: dict):
+        sql_ins.cursor.execute(cls._sql_update_single_data(data), data)
+        sql_ins.conn.commit()
+
+    @classmethod
+    def delete_single_data(cls, qq: int):
+        sql_ins.cursor.execute(cls._sql_delete_single_data(qq))
+        sql_ins.conn.commit()
+
+    @classmethod
+    def select_batch_data_by_qqs(cls, qqs: list):
+        sql_ins.cursor.execute(cls._sql_batch_select_data(qqs))
+        return [cls.deserialize(data) for data in sql_ins.cursor.fetchall()]
+
+
+class DB_Badge():
+
+    @staticmethod
+    def init_user_data(qq: int):
+        data = Sql_badge.select_single_data(qq)
+        if data is None:
+            data = {
+                "qq": qq,
+                "badge_ids": "",
+                "glue_me_count": 0,
+                "glue_target_count": 0,
+                "glue_plus_count": 0,
+                "glue_plus_length_total": 0,
+                "glue_punish_count": 0,
+                "glue_punish_length_total": 0,
+                "pk_win_count": 0,
+                "pk_lose_count": 0,
+                "pk_plus_length_total": 0,
+                "pk_punish_length_total": 0,
+                "lock_me_count": 0,
+                "lock_target_count": 0,
+                "lock_plus_count": 0,
+                "lock_punish_count": 0,
+                "lock_plus_length_total": 0,
+                "lock_punish_length_total": 0
+            }
+            Sql_badge.insert_single_data(data)
+
+    @classmethod
+    def plus_value_by_ley(cls, qq: int, key: str, plus_value: int):
+        data = Sql_badge.select_single_data(qq)
+        if data is None:
+            cls.init_user_data(qq)
+            cls.plus_value_by_ley(qq, key, plus_value)
+        else:
+            new_value = data[key] + plus_value
+            # if total data, fixed 2
+            if key.endswith("total"):
+                new_value = fixed_two_decimal_digits(new_value, to_number=True)
+            data[key] = new_value
+            Sql_badge.update_single_data(data)
+
+    @classmethod
+    def record_glue_me_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "glue_me_count", 1)
+
+    @classmethod
+    def record_glue_target_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "glue_target_count", 1)
+
+    @classmethod
+    def record_glue_plus_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "glue_plus_count", 1)
+
+    @classmethod
+    def record_glue_plus_length_total(cls, qq: int, length: float):
+        cls.plus_value_by_ley(qq, "glue_plus_length_total", length)
+
+    @classmethod
+    def record_glue_punish_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "glue_punish_count", 1)
+
+    @classmethod
+    def record_glue_punish_length_total(cls, qq: int, length: float):
+        cls.plus_value_by_ley(qq, "glue_punish_length_total", length)
+
+    @classmethod
+    def record_pk_win_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "pk_win_count", 1)
+
+    @classmethod
+    def record_pk_lose_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "pk_lose_count", 1)
+
+    @classmethod
+    def record_pk_plus_length_total(cls, qq: int, length: float):
+        cls.plus_value_by_ley(qq, "pk_plus_length_total", length)
+
+    @classmethod
+    def record_pk_punish_length_total(cls, qq: int, length: float):
+        cls.plus_value_by_ley(qq, "pk_punish_length_total", length)
+
+    @ classmethod
+    def record_lock_me_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "lock_me_count", 1)
+
+    @ classmethod
+    def record_lock_target_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "lock_target_count", 1)
+
+    @ classmethod
+    def record_lock_plus_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "lock_plus_count", 1)
+
+    @ classmethod
+    def record_lock_punish_count(cls, qq: int):
+        cls.plus_value_by_ley(qq, "lock_punish_count", 1)
+
+    @ classmethod
+    def record_lock_plus_length_total(cls, qq: int, length: float):
+        cls.plus_value_by_ley(qq, "lock_plus_length_total", length)
+
+    @ classmethod
+    def record_lock_punish_length_total(cls, qq: int, length: float):
+        cls.plus_value_by_ley(qq, "lock_punish_length_total", length)
+
+
 class Sql():
 
     sub_table_info = Sql_UserInfo()
     sub_table_rebirth = Sql_rebirth()
+    sub_table_badge = Sql_badge()
 
     def __init__(self):
         self.sqlite_path = Paths.sqlite_path()
         self.conn = sqlite3.connect(self.sqlite_path)
         self.cursor = self.conn.cursor()
 
-    @staticmethod
+    @ staticmethod
     def __sql_create_table():
         return 'create table if not exists `users` (`qq` bigint, `length` float, `daily_lock_count` integer, `daily_pk_count` integer, `daily_glue_count` integer, `register_time` varchar(255), `latest_daily_lock` varchar(255), `latest_daily_pk` varchar(255), `latest_daily_glue` varchar(255), `pk_time` varchar(255), `pked_time` varchar(255), `glueing_time` varchar(255), `glued_time` varchar(255), `locked_time` varchar(255), primary key (`qq`));'
 
-    @staticmethod
+    @ staticmethod
     def __sql_insert_single_data(data: dict):
         return f'insert into `users` (`daily_glue_count`, `daily_lock_count`, `daily_pk_count`, `glued_time`, `glueing_time`, `latest_daily_glue`, `latest_daily_lock`, `latest_daily_pk`, `length`, `locked_time`, `pk_time`, `pked_time`, `qq`, `register_time`) values ({data["daily_glue_count"]}, {data["daily_lock_count"]}, {data["daily_pk_count"]}, "{data["glued_time"]}", "{data["glueing_time"]}", "{data["latest_daily_glue"]}", "{data["latest_daily_lock"]}", "{data["latest_daily_pk"]}", {data["length"]}, "{data["locked_time"]}", "{data["pk_time"]}", "{data["pked_time"]}", {data["qq"]}, "{data["register_time"]}");'
 
-    @staticmethod
+    @ staticmethod
     def __sql_select_single_data(qq: int):
         return f'select * from `users` where `qq` = {qq};'
 
-    @staticmethod
+    @ staticmethod
     def __sql_check_table_exists():
         return 'select count(*) from sqlite_master where type = "table" and name = "users";'
 
-    @staticmethod
+    @ staticmethod
     def __sql_update_single_data(data: dict):
         return f'update `users` set `length` = {data["length"]}, `register_time` = "{data["register_time"]}", `daily_lock_count` = {data["daily_lock_count"]}, `daily_pk_count` = {data["daily_pk_count"]}, `daily_glue_count` = {data["daily_glue_count"]}, `latest_daily_lock` = "{data["latest_daily_lock"]}", `latest_daily_pk` = "{data["latest_daily_pk"]}", `latest_daily_glue` = "{data["latest_daily_glue"]}", `pk_time` = "{data["pk_time"]}", `pked_time` = "{data["pked_time"]}", `glueing_time` = "{data["glueing_time"]}", `glued_time` = "{data["glued_time"]}", `locked_time` = "{data["locked_time"]}" where `qq` = {data["qq"]};'
 
-    @staticmethod
+    @ staticmethod
     def __sql_get_data_counts():
         return 'select count(*) from `users`;'
 
-    @staticmethod
+    @ staticmethod
     def __sql_order_by_length():
         max = Config.get_config('ranking_list_length')
         return f'select * from `users` order by `length` desc limit {max};'
 
-    @classmethod
+    @ classmethod
     def get_top_users(cls) -> list:
         sql_ins.cursor.execute(cls.__sql_order_by_length())
         some = sql_ins.cursor.fetchall()
@@ -215,18 +405,18 @@ class Sql():
             return None
         return [cls.deserialize(one) for one in some]
 
-    @classmethod
+    @ classmethod
     def get_data_counts(cls) -> int:
         sql_ins.cursor.execute(cls.__sql_get_data_counts())
         one = sql_ins.cursor.fetchone()
         return one[0]
 
-    @classmethod
+    @ classmethod
     def insert_single_data(cls, data: dict):
         sql_ins.cursor.execute(cls.__sql_insert_single_data(data))
         sql_ins.conn.commit()
 
-    @staticmethod
+    @ staticmethod
     def deserialize(one: tuple):
         return {
             'qq': one[0],
@@ -245,7 +435,7 @@ class Sql():
             'locked_time': one[13]
         }
 
-    @classmethod
+    @ classmethod
     def select_data_by_qq(cls, qq: int):
         sql_ins.cursor.execute(cls.__sql_select_single_data(qq))
         one = sql_ins.cursor.fetchone()
@@ -253,14 +443,16 @@ class Sql():
             return None
         return cls.deserialize(one)
 
-    @classmethod
+    @ classmethod
     def check_table_exists(cls):
         create_table_funs = [
             [cls.__sql_check_table_exists, cls.__sql_create_table],
             [cls.sub_table_info._sql_check_table_exists,
                 cls.sub_table_info._sql_create_table],
             [cls.sub_table_rebirth._sql_check_table_exists,
-                cls.sub_table_rebirth._sql_create_table]
+                cls.sub_table_rebirth._sql_create_table],
+            [cls.sub_table_badge._sql_check_table_exist,
+                cls.sub_table_badge._sql_create_table]
         ]
         # check users, info, rebirth table exists
         for funs in create_table_funs:
@@ -271,12 +463,12 @@ class Sql():
                 sql_ins.cursor.execute(funs[1]())
                 sql_ins.conn.commit()
 
-    @classmethod
+    @ classmethod
     def update_data_by_qq(cls, data: dict):
         sql_ins.cursor.execute(cls.__sql_update_single_data(data))
         sql_ins.conn.commit()
 
-    @staticmethod
+    @ staticmethod
     def init_database():
         global sql_ins
         if sql_ins:
@@ -295,12 +487,12 @@ class Sql():
 
 
 class DB_UserInfo():
-    @staticmethod
+    @ staticmethod
     def is_user_exists(qq: int):
         sql_ins.cursor.execute(Sql.sub_table_info._sql_select_single_data(qq))
         return sql_ins.cursor.fetchone() is not None
 
-    @classmethod
+    @ classmethod
     def record_user_info(cls, qq: int, data: dict):
         data["qq"] = qq
         is_exists = cls.is_user_exists(qq)
@@ -314,15 +506,15 @@ class DB_UserInfo():
 
 
 class DataUtils():
-    @staticmethod
+    @ staticmethod
     def __assign(data_1: dict, data_2: dict):
         return {**data_1, **data_2}
 
-    @staticmethod
+    @ staticmethod
     def __make_qq_to_data_map(data: list):
         return {one['qq']: one for one in data}
 
-    @classmethod
+    @ classmethod
     def merge_data(cls, data_1: dict, data_2: dict):
         # handle None
         if data_1 is None:
@@ -331,7 +523,7 @@ class DataUtils():
             data_2 = {}
         return cls.__assign(data_1, data_2)
 
-    @classmethod
+    @ classmethod
     def merge_data_list(cls, datas: list):
         maps = [cls.__make_qq_to_data_map(one) for one in datas]
         for key in maps[0].keys():
@@ -348,13 +540,14 @@ class DB():
 
     sub_db_info = DB_UserInfo()
     sub_db_rebirth = DB_Rebirth()
+    sub_db_badge = DB_Badge()
     utils = DataUtils()
 
-    @staticmethod
+    @ staticmethod
     def create_data(data: dict):
         Sql.insert_single_data(data)
 
-    @staticmethod
+    @ staticmethod
     def load_data(qq: int):
         # main data
         user_table_data = Sql.select_data_by_qq(qq)
@@ -365,19 +558,19 @@ class DB():
         merged_data = DB.utils.merge_data(user_table_data, rebirth_table_data)
         return merged_data
 
-    @classmethod
+    @ classmethod
     def is_registered(cls, qq: int):
         return cls.load_data(qq) is not None
 
-    @classmethod
+    @ classmethod
     def write_data(cls, data: dict):
         Sql.update_data_by_qq(data)
 
-    @staticmethod
+    @ staticmethod
     def get_data_counts():
         return Sql.get_data_counts()
 
-    @classmethod
+    @ classmethod
     def length_increase(cls, qq: int, length: float):
         """
           only allow `main.py` call
@@ -389,7 +582,7 @@ class DB():
             user_data['length'], to_number=True)
         cls.write_data(user_data)
 
-    @classmethod
+    @ classmethod
     def length_decrease(cls, qq: int, length: float):
         """
           only allow `main.py` call
@@ -415,19 +608,19 @@ class DB():
         user_data['length'] -= will_punish_length
         cls.write_data(user_data)
 
-    @classmethod
+    @ classmethod
     def record_time(cls, qq: int, key: str):
         user_data = cls.load_data(qq)
         user_data[key] = get_now_time()
         cls.write_data(user_data)
 
-    @classmethod
+    @ classmethod
     def reset_daily_count(cls, qq: int, key: str):
         user_data = cls.load_data(qq)
         user_data[key] = 0
         cls.write_data(user_data)
 
-    @classmethod
+    @ classmethod
     def is_lock_daily_limited(cls, qq: int):
         user_data = cls.load_data(qq)
         current_count = user_data['daily_lock_count']
@@ -440,14 +633,14 @@ class DB():
             return True
         return False
 
-    @classmethod
+    @ classmethod
     def count_lock_daily(cls, qq: int):
         user_data = cls.load_data(qq)
         user_data['daily_lock_count'] += 1
         user_data['latest_daily_lock'] = get_now_time()
         cls.write_data(user_data)
 
-    @classmethod
+    @ classmethod
     def is_glue_daily_limited(cls, qq: int):
         user_data = cls.load_data(qq)
         current_count = user_data['daily_glue_count']
@@ -460,14 +653,14 @@ class DB():
             return True
         return False
 
-    @classmethod
+    @ classmethod
     def count_glue_daily(cls, qq: int):
         user_data = cls.load_data(qq)
         user_data['daily_glue_count'] += 1
         user_data['latest_daily_glue'] = get_now_time()
         cls.write_data(user_data)
 
-    @classmethod
+    @ classmethod
     def is_pk_daily_limited(cls, qq: int):
         user_data = cls.load_data(qq)
         current_count = user_data['daily_pk_count']
@@ -480,14 +673,14 @@ class DB():
             return True
         return False
 
-    @classmethod
+    @ classmethod
     def count_pk_daily(cls, qq: int):
         user_data = cls.load_data(qq)
         user_data['daily_pk_count'] += 1
         user_data['latest_daily_pk'] = get_now_time()
         cls.write_data(user_data)
 
-    @classmethod
+    @ classmethod
     def is_pk_protected(cls, qq: int):
         """
           TODO: 对转生者可以刷分，以后需要限制
@@ -498,7 +691,7 @@ class DB():
             return True
         return False
 
-    @staticmethod
+    @ staticmethod
     def get_top_users():
         top_users = Sql.get_top_users()
         qqs = [one["qq"] for one in top_users]

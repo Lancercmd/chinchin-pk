@@ -147,6 +147,73 @@ const run = async () => {
       .toSQL()
     sql.push(deleteSqlWithRebirth.sql)
 
+    // badge table
+    sql.push('-- Badge Table --')
+    const createSqlWithBadge = await ins.schema
+      .createTableIfNotExists('badge', (table) => {
+        table.bigint('qq').primary()
+        table.string('badge_ids')
+        // glue
+        table.bigint('glue_me_count')
+        table.bigint('glue_target_count')
+        table.bigint('glue_plus_count') // 打胶成功次数
+        table.bigint('glue_plus_length_total') // 打胶成功累计长度
+        table.bigint('glue_punish_count') // 打胶失败次数
+        table.bigint('glue_punish_length_total') // 打胶失败累计扣减长度
+
+        // pk
+        table.bigint('pk_win_count') // pk胜利次数
+        table.bigint('pk_lose_count') // pk失败次数
+        table.bigint('pk_plus_length_total') // pk胜利累计长度
+        table.bigint('pk_punish_length_total') // pk失败累计扣减长度
+
+        // lock
+        table.bigint('lock_me_count') // 锁自己的次数
+        table.bigint('lock_target_count') // 锁别人的次数
+        table.bigint('lock_plus_count') // 锁成功次数
+        table.bigint('lock_punish_count') // 锁失败次数
+        table.bigint('lock_plus_length_total') // 锁成功累计长度
+        table.bigint('lock_punish_length_total') // 锁失败累计扣减长度
+
+      })
+      .toSQL()
+    // @ts-expect-error
+    sql.push(createSqlWithBadge[0].sql)
+    const insertSqlWithBadge = await ins('badge')
+      .insert({
+        qq: 123456789,
+        badge_ids: '1,2,3',
+        glue_me_count: 0,
+        glue_target_count: 0,
+        glue_plus_count: 0,
+        glue_plus_length_total: 0,
+        glue_punish_count: 0,
+        glue_punish_length_total: 0,
+        pk_win_count: 0,
+        pk_lose_count: 0,
+        pk_plus_length_total: 0,
+        pk_punish_length_total: 0,
+        lock_me_count: 0,
+        lock_target_count: 0,
+        lock_plus_count: 0,
+        lock_punish_count: 0,
+        lock_plus_length_total: 0,
+        lock_punish_length_total: 0,
+      })
+      .toSQL()
+    sql.push(insertSqlWithBadge.sql)
+    const selectSqlWithBadge = await ins('badge')
+      .select('*')
+      .where('qq', 123456789)
+      .toSQL()
+    sql.push(selectSqlWithBadge.sql)
+    // delete
+    const deleteSqlWithBadge = await ins('badge')
+      .where('qq', 123456789)
+      .del()
+      .toSQL()
+    sql.push(deleteSqlWithBadge.sql)
+
     // write
     fs.writeFileSync(SQL_FILE, sql.join(';\n') + ';\n', 'utf-8')
   } catch (e) {
