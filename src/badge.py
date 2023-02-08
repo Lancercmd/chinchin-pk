@@ -1,6 +1,7 @@
 from .config import Config
 from .db import DB
 from .badge_parser import BadgeSystem_Parser
+from .constants import OpFrom
 
 cache = None
 
@@ -180,3 +181,24 @@ class BadgeSystem():
         beatify_names = [f"【{i}】" for i in new_badge_names]
         msg = f"🎉恭喜你获得新成就：{'、'.join(beatify_names)}"
         return msg
+
+    @classmethod
+    def handle_weighting_by_qq(cls, qq: int, length: float, source: str = OpFrom.OTHER):
+        badge_arr = cls.get_badge_by_qq(qq)
+        if not badge_arr:
+            return length
+        for badge in badge_arr:
+            addition = badge['addition']
+            # lock weighting
+            lock_weight_fun = addition.get('lock_weight')
+            if lock_weight_fun and OpFrom.is_lock(source):
+                length = lock_weight_fun(length)
+            # glue weighting
+            glue_weight_fun = addition.get('glue_weight')
+            if glue_weight_fun and OpFrom.is_glue(source):
+                length = glue_weight_fun(length)
+            # pk weighting
+            pk_weight_fun = addition.get('pk_weight')
+            if pk_weight_fun and OpFrom.is_pk(source):
+                length = pk_weight_fun(length)
+        return length

@@ -5,6 +5,7 @@ from .config import Config
 from .cd import CD_Check
 from .rebirth import RebirthSystem
 from .badge import BadgeSystem
+from .constants import OpFrom
 from typing import Optional
 
 KEYWORDS = {
@@ -60,7 +61,6 @@ def message_processor(
         "after": []
     }
     # hack send message impl
-    # hook send_message
     def create_send_message_hook(origin_send_message):
         def send_message_hook(qq, group, message):
             before = join(msg_ctx['before'], '\n')
@@ -87,8 +87,6 @@ def message_processor(
     })
     # 记录数据 - badge
     DB.sub_db_badge.init_user_data(qq)
-
-    
 
     # 注册牛子
     if match_func(KEYWORDS.get('sign_up'), message):
@@ -160,10 +158,12 @@ def message_processor(
 
 class Chinchin_intercepor():
     @staticmethod
-    def length_operate(qq: int, origin_change: float):
+    def length_operate(qq: int, origin_change: float, source: str = OpFrom.OTHER):
         rebirth_weight = RebirthSystem.get_weight_by_qq(qq)
+        result = origin_change * rebirth_weight
+        result = BadgeSystem.handle_weighting_by_qq(qq, result, source)
         result = fixed_two_decimal_digits(
-            origin_change * rebirth_weight,
+            result,
             to_number=True
         )
         return result
@@ -384,7 +384,8 @@ class Chinchin_me():
                 send_message(qq, group, join(message_arr, '\n'))
             else:
                 plus_value = Chinchin_intercepor.length_operate(
-                    qq, Config.get_lock_plus_value()
+                    qq, Config.get_lock_plus_value(),
+                    source=OpFrom.LOCK_ME
                 )
                 # weighting from qq
                 DB.length_increase(qq, plus_value)
@@ -435,7 +436,8 @@ class Chinchin_me():
             send_message(qq, group, join(message_arr, '\n'))
         else:
             plus_value = Chinchin_intercepor.length_operate(
-                qq, Config.get_glue_plus_value()
+                qq, Config.get_glue_plus_value(),
+                source=OpFrom.GLUE_ME
             )
             # weighting from qq
             DB.length_increase(qq, plus_value)
@@ -535,10 +537,12 @@ class Chinchin_with_target():
         DB.count_pk_daily(qq)
         if is_user_win:
             user_plus_value = Chinchin_intercepor.length_operate(
-                qq, Config.get_pk_plus_value()
+                qq, Config.get_pk_plus_value(),
+                source=OpFrom.PK_WIN
             )
             target_punish_value = Chinchin_intercepor.length_operate(
-                qq, Config.get_pk_punish_value()
+                qq, Config.get_pk_punish_value(),
+                source=OpFrom.PK_LOSE
             )
             # weighting from qq
             DB.length_increase(qq, user_plus_value)
@@ -594,7 +598,8 @@ class Chinchin_with_target():
             send_message(qq, group, join(message_arr, '\n'))
             return
         target_plus_value = Chinchin_intercepor.length_operate(
-            qq, Config.get_lock_plus_value()
+            qq, Config.get_lock_plus_value(),
+            source=OpFrom.LOCK_WITH_TARGET
         )
         # weighting from qq
         DB.length_increase(at_qq, target_plus_value)
@@ -640,7 +645,8 @@ class Chinchin_with_target():
         is_glue_failed = Config.is_hit('glue_negative_prob')
         if is_glue_failed:
             target_punish_value = Chinchin_intercepor.length_operate(
-                qq, Config.get_glue_punish_value()
+                qq, Config.get_glue_punish_value(),
+                source=OpFrom.GLUE_WITH_TARGET
             )
             # weighting from qq
             DB.length_decrease(at_qq, target_punish_value)
@@ -655,7 +661,8 @@ class Chinchin_with_target():
             send_message(qq, group, join(message_arr, '\n'))
         else:
             target_plus_value = Chinchin_intercepor.length_operate(
-                qq, Config.get_glue_plus_value()
+                qq, Config.get_glue_plus_value(),
+                source=OpFrom.GLUE_WITH_TARGET
             )
             # weighting from qq
             DB.length_increase(at_qq, target_plus_value)

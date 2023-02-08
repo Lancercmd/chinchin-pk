@@ -335,6 +335,14 @@ def test_badge():
     Sql.sub_table_badge.update_single_data(user_3_badge_data)
     wrap(user_3, '牛子', comment='3 查信息，此时获得了成就')
     wrap(user_3, '牛子成就', comment='3 查成就')
+    wrap(user_3, '牛子排名', comment='3 查排名')
+
+    # 检验加权生效
+    data = DB.load_data(user_3)
+    data['length'] = 500
+    DB.write_data(data)
+    wrap(user_3, 'pk', at_qq=user_1, comment='3 pk 1 有加权')
+    wrap(user_3, '打胶', at_qq=user_1, comment='3 打胶 1 有加权')
 
 if __name__ == '__main__':
     clear_database()
@@ -355,4 +363,4 @@ if __name__ == '__main__':
     if arg('--badge'):
         test_badge()
 
-    # write_snapshot()
+    write_snapshot()
