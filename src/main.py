@@ -214,6 +214,9 @@ class Chinchin_info():
     def entry_ranking(ctx: dict):
         qq = ctx['qq']
         group = ctx['group']
+        msg_ctx = ctx['msg_ctx']
+        # remove before `at` msg
+        del msg_ctx['before'][0]
         top_users = DB.get_top_users()
         message_arr = [
             '【牛子宇宙最长大牛子】',
@@ -412,7 +415,7 @@ class Chinchin_me():
                 DB.sub_db_badge.record_lock_plus_length_total(qq, plus_value)
                 # TODO: 🔒自己效果有加成
                 message_arr = [
-                    '🔒的很卖力很舒服，你的牛子增加了{}厘米'.format(plus_value)
+                    '自己把自己搞舒服了，牛子涨了{}厘米'.format(plus_value)
                 ]
                 send_message(qq, group, join(message_arr, '\n'))
 
