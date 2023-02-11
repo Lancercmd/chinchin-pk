@@ -216,7 +216,8 @@ class Chinchin_info():
         group = ctx['group']
         msg_ctx = ctx['msg_ctx']
         # remove before `at` msg
-        del msg_ctx['before'][0]
+        if len(msg_ctx['before']) > 0:
+            del msg_ctx['before'][0]
         top_users = DB.get_top_users()
         message_arr = [
             '【牛子宇宙最长大牛子】',
