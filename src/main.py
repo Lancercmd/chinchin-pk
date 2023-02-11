@@ -37,11 +37,11 @@ def message_processor(
     """
         main entry
         TODO: 破解牛子：被破解的 牛子 长度操作 x 100 倍
+        TODO：疯狂牛子星期四，牛子长度操作加倍
         TODO: 不同群不同的配置参数
-        TODO: 成就系统
         TODO: 转生级别不同不能较量
         TODO: 牛子最小排行
-        TODO: 牛子成就
+        TODO：牛子成就额外的提示语
     """
     # lazy init database
     lazy_init_database()
