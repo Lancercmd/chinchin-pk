@@ -355,6 +355,21 @@ def test_badge():
     wrap(user_3, 'pk', at_qq=user_1, comment='3 pk 1 有加权')
     wrap(user_3, '打胶', at_qq=user_1, comment='3 打胶 1 有加权')
 
+# https://github.com/opq-osc/chinchin-pk/pull/4
+def pull_4():
+
+    wrap(user_1, '注册牛子', comment='1 注册')
+    wrap(user_2, '注册牛子', comment='2 注册')
+    wrap(user_3, '注册牛子', comment='3 注册')
+
+    # delete 2 and 3 badge data for simulate incremental update
+    Sql.sub_table_badge.delete_single_data(user_2)
+    Sql.sub_table_badge.delete_single_data(user_3)
+
+    wrap(user_1, '牛子排名', comment='1 查排名')
+    wrap(user_1, '看他牛子', at_qq=user_2, comment='1 查看 2 牛子')
+    wrap(user_1, '看他牛子', at_qq=user_3, comment='1 查看 3 牛子')
+
 if __name__ == '__main__':
     clear_database()
 
@@ -373,6 +388,10 @@ if __name__ == '__main__':
     # args: --badge
     if arg('--badge'):
         test_badge()
+    
+    # args: --pull-4
+    if arg('--pull-4'):
+        pull_4()
 
     # clear log
     if arg('--clear'):
