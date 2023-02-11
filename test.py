@@ -16,6 +16,17 @@ group = 123
 k = get_object_values(KEYWORDS)
 print(k)
 
+def clear_logger():
+    snapshot_dir = os.path.join(os.path.dirname(__file__), '__snapshot__')
+    logger_dirs = [os.path.join(snapshot_dir, d) for d in os.listdir(snapshot_dir) if os.path.isdir(os.path.join(snapshot_dir, d))]
+    max_file_count = 10
+    for logger_dir in logger_dirs:
+        files = os.listdir(logger_dir)
+        if len(files) > max_file_count:
+            files.sort(key=lambda x: os.path.getmtime(os.path.join(logger_dir, x)))
+            for file in files[:len(files) - max_file_count]:
+                print(f'remove {os.path.join(logger_dir, file)}')
+                os.remove(os.path.join(logger_dir, file))
 
 class bcolors:
     HEADER = '\033[95m'
@@ -362,5 +373,9 @@ if __name__ == '__main__':
     # args: --badge
     if arg('--badge'):
         test_badge()
+
+    # clear log
+    if arg('--clear'):
+        clear_logger()
 
     write_snapshot()
