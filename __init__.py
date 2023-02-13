@@ -41,7 +41,8 @@ async def receive_group_msg(ctx: GroupMsg):
     nickname = ctx.FromNickName
 
     def impl_at_segment(qq: int):
-        return ctx.FromNickName
+        # 伪 at ，因为真 at 会风控
+        return f'@{ctx.FromNickName}'
 
     def impl_send_message(qq: int, group: int, message: str):
         S.bind(ctx).text(message)
