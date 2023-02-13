@@ -106,8 +106,13 @@ def message_processor(
 
     # 下面的逻辑必须有牛子
     if not DB.is_registered(qq):
+        not_has_chinchin_msg = None
+        if at_qq:
+            not_has_chinchin_msg = '对方因为你没有牛子拒绝了你，快去注册一只牛子吧，不然会被人瞧不起！'
+        else:
+            not_has_chinchin_msg = '你还没有牛子！'
         message_arr = [
-            '你还没有牛子！'
+            not_has_chinchin_msg,
         ]
         send_message(qq, group, join(message_arr, '\n'))
         return
