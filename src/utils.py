@@ -99,9 +99,9 @@ class Random():
 
     @classmethod
     def get_single_random(cls):
-        num_1 = cls.generate_secure_random_number()
+        # num_1 = cls.generate_secure_random_number()
         num_2 = cls.generate_secure_random_number()
-        return (num_1 + num_2) / 2
+        return num_2
 
     @classmethod
     def fill(cls):
