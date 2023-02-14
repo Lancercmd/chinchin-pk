@@ -218,6 +218,32 @@ def test_legacy():
     wrap(user_2, 'pk', user_1, comment='user 2 pk user 1 触发 pk 保护')
     wrap(user_2, 'pk', user_1, comment='user 2 pk user 1 触发 pk 保护 +2')
 
+    # pk 超过 100% 不可能赢
+    data = DB.load_data(user_1)
+    data['length'] = 50
+    data['latest_daily_pk'] = '2020-01-01 00:00:01'
+    DB.write_data(data)
+    data = DB.load_data(user_2)
+    data['length'] = 101
+    DB.write_data(data)
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 超过 100% 不可能赢')
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 超过 100% 不可能赢 + 1')
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 超过 100% 不可能赢 + 2')
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 超过 100% 不可能赢 + 3')
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 超过 100% 不可能赢 + 4')
+
+    # pk 在 100% 有可能赢
+    data = DB.load_data(user_1)
+    data['length'] = 60
+    data['latest_daily_pk'] = '2020-01-01 00:00:01'
+    DB.write_data(data)
+    data = DB.load_data(user_2)
+    data['length'] = 100
+    DB.write_data(data)
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 在 100% 有可能赢')
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 在 100% 有可能赢 + 1')
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 在 100% 有可能赢 + 2')
+    wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 在 100% 有可能赢 + 3')
 
 def test_nickname():
     wrap(user_1, '注册牛子', comment='1 注册')

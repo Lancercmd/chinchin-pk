@@ -44,8 +44,15 @@
   "glue_self_negative_min": 0.1,
   "glue_self_negative_max": 0.5,
 
-  "##pk_unstable_range": "pk两者牛子相差该值时，pk胜负不稳定，会55开随机决定胜负",
-  "pk_unstable_range": 5,
+  "##pk_unstable_range": "（已废弃）pk两者牛子相差该值时，pk胜负不稳定，会55开随机决定胜负",
+  "##pk_unstable_range_deprecated": "旧版逻辑不友好，新版改用 pk_unstable_range_v2 和 pk_unstable_range_v2_edge",
+  "_pk_unstable_range": 5,
+
+  "##pk_unstable_range_v2": "取值范围 [0, ∞) ，pk时，没有绝对实力差距的范围",
+  "##pk_unstable_range_v2_example": "可以设定为 0.1, 1, 1.1 等(1.1 是 110%)，比如 1 时，50cm 允许挑战 100cm 以内的，两者差的越多，越难赢，挑战 100cm+ 的存在绝对实力差距，无法获胜",
+  "pk_unstable_range_v2": 1,
+  "##pk_unstable_range_v2_edge": "取值范围 [0, 1] ，pk没有绝对实力差距时，胜率的边缘情况，不能低于 10% ，不能高于 90%",
+  "pk_unstable_range_v2_edge": [0.1, 0.9],
 
   "##pk_plus": "pk胜利后增加长度的范围",
   "pk_plus_min": 0.5,

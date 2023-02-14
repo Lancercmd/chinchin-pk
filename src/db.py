@@ -724,3 +724,4 @@ class DB():
 
 def lazy_init_database():
     Sql.init_database()
+    Config.deprecated_tips()
