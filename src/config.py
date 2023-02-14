@@ -1,6 +1,5 @@
 import os
-import random
-from .utils import fixed_two_decimal_digits
+from .utils import fixed_two_decimal_digits, Random
 
 try:
     import ujson as json
@@ -48,13 +47,13 @@ class Config():
     @staticmethod
     def random_value(min: float, max: float):
         return fixed_two_decimal_digits(
-            min + (max - min) * random.random(),
+            min + (max - min) * Random.random(),
             to_number=True
         )
 
     @staticmethod
     def is_hit_with_rate(rate: float):
-        return random.random() < rate
+        return Random.random() < rate
 
     @classmethod
     def is_hit(cls, key: str):
@@ -81,7 +80,7 @@ class Config():
 
     @staticmethod
     def is_pk_win():
-        return random.random() < 0.5
+        return Random.random() < 0.5
 
     @classmethod
     def get_pk_plus_value(cls):

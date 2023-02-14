@@ -45,7 +45,6 @@ def message_processor(
 
         高优：
         TODO: 牛子 pk 优化，不再是 55 开胜率
-        TODO：所有 random 用更好的随机算法
     """
     # lazy init database
     lazy_init_database()
