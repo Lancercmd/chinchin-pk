@@ -223,6 +223,7 @@ const run = async () => {
         table.string('farm_latest_plant_time')
         table.integer('farm_need_time')
         table.integer('farm_count')
+        table.float('farm_expect_get_length')
       })
       .toSQL()
     // @ts-expect-error
@@ -234,6 +235,7 @@ const run = async () => {
         farm_latest_plant_time: '2023-01-25 02:26:52',
         farm_need_time: 0,
         farm_count: 0,
+        farm_expect_get_length: 0
       })
       .toSQL()
     sql.push(insertSqlWithFarm.sql)

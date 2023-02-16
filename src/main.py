@@ -771,8 +771,9 @@ class Chinchin_farm:
                 # reset user
                 FarmSystem.reset_user_data(qq)
                 # reward length
+                expect_plus_length = data['farm_expect_get_length']
                 reward_length = Chinchin_intercepor.length_operate(
-                    qq, FarmSystem.get_reward_length(), source=OpFrom.FARM_OVER
+                    qq, expect_plus_length, source=OpFrom.FARM_OVER
                 )
                 # update length
                 DB.length_increase(qq, reward_length)

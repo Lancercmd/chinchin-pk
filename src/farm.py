@@ -73,16 +73,20 @@ class FarmSystem:
         data = DB.sub_db_farm.get_user_data(qq)
         data["farm_status"] = FarmConst.status_empty
         data["farm_need_time"] = 0
+        data['farm_expect_get_length'] = 0
         DB.sub_db_farm.update_user_data(data)
 
     @classmethod
-    def get_reward_length(cls):
+    def get_reward_length(cls, qq: int):
         config = cls.read_farm_config()
         reward = config["reward"]
         min = reward["min"]
         max = reward["max"]
         base = reward["base"]
-        return base + Config.random_value(min, max)
+        user_data = DB.load_data(qq)
+        length = user_data["length"]
+        result = Config.random_value(min, max) * length + base
+        return result
 
     @classmethod
     def start_plant(cls, qq: int):
@@ -99,6 +103,8 @@ class FarmSystem:
         need_time = config["cost"][-1]["time"]
         need_time_minutes = need_time["h"] * 60 + need_time["m"]
         data["farm_need_time"] = need_time_minutes
+        # 预期收益在开始的时候就知道了，因为后续可能被偷取
+        data["farm_expect_get_length"] = cls.get_reward_length(qq)
         # update
         DB.sub_db_farm.update_user_data(data)
         return {
