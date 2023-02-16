@@ -2,7 +2,7 @@ import os
 import time
 from src.db import DB, Sql
 from src.main import message_processor, KEYWORDS
-from src.utils import get_object_values, get_now_time
+from src.utils import get_object_values, ArrowUtil
 from src.config import Config
 import sys
 
@@ -12,6 +12,8 @@ user_3 = 1233
 user_1_nickname = '用户1'
 user_2_nickname = "'; select true; --"
 group = 123
+
+get_now_time = ArrowUtil.get_now_time
 
 k = get_object_values(KEYWORDS)
 print(k)
