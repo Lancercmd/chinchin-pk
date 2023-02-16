@@ -29,7 +29,7 @@ class FarmSystem:
         # cache
         cache = configs
         return cache
-    
+
     @staticmethod
     def modify_config_in_runtime(config: dict):
         global cache
@@ -73,7 +73,7 @@ class FarmSystem:
         data = DB.sub_db_farm.get_user_data(qq)
         data["farm_status"] = FarmConst.status_empty
         data["farm_need_time"] = 0
-        data['farm_expect_get_length'] = 0
+        data["farm_expect_get_length"] = 0
         DB.sub_db_farm.update_user_data(data)
 
     @classmethod

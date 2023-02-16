@@ -138,9 +138,7 @@ def message_processor(
 
     def eager_return():
         # TODO ：急的次数太多获得 “急急国王” 成就
-        message_arr = [
-            "你的牛子还在闭关修炼中，无法进行其他操作，我知道你很急，但你先别急"
-        ]
+        message_arr = ["你的牛子还在闭关修炼中，无法进行其他操作，我知道你很急，但你先别急"]
         return send_message(qq, group, join(message_arr, "\n"))
 
     # >>> 匹配阶段
@@ -771,7 +769,7 @@ class Chinchin_farm:
                 # reset user
                 FarmSystem.reset_user_data(qq)
                 # reward length
-                expect_plus_length = data['farm_expect_get_length']
+                expect_plus_length = data["farm_expect_get_length"]
                 reward_length = Chinchin_intercepor.length_operate(
                     qq, expect_plus_length, source=OpFrom.FARM_OVER
                 )

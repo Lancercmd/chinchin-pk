@@ -373,11 +373,11 @@ class DB_Badge:
 class Sql_farm:
     @staticmethod
     def _sql_create_table():
-        return 'create table if not exists `farm` (`qq` bigint, `farm_status` varchar(255), `farm_latest_plant_time` varchar(255), `farm_need_time` integer, `farm_count` integer, `farm_expect_get_length` float, primary key (`qq`));'
+        return "create table if not exists `farm` (`qq` bigint, `farm_status` varchar(255), `farm_latest_plant_time` varchar(255), `farm_need_time` integer, `farm_count` integer, `farm_expect_get_length` float, primary key (`qq`));"
 
     @staticmethod
     def _sql_insert_single_data():
-        return 'insert into `farm` (`qq`, `farm_status`, `farm_latest_plant_time`, `farm_need_time`, `farm_count`, `farm_expect_get_length`) values (:qq, :farm_status, :farm_latest_plant_time, :farm_need_time, :farm_count, :farm_expect_get_length);'
+        return "insert into `farm` (`qq`, `farm_status`, `farm_latest_plant_time`, `farm_need_time`, `farm_count`, `farm_expect_get_length`) values (:qq, :farm_status, :farm_latest_plant_time, :farm_need_time, :farm_count, :farm_expect_get_length);"
 
     @staticmethod
     def _sql_select_single_data(qq: int):
@@ -389,7 +389,7 @@ class Sql_farm:
 
     @staticmethod
     def _sql_update_single_data():
-        return 'update `farm` set `farm_status` = :farm_status, `farm_latest_plant_time` = :farm_latest_plant_time, `farm_need_time` = :farm_need_time, `farm_count` = :farm_count, `farm_expect_get_length` = :farm_expect_get_length where `qq` = :qq;'
+        return "update `farm` set `farm_status` = :farm_status, `farm_latest_plant_time` = :farm_latest_plant_time, `farm_need_time` = :farm_need_time, `farm_count` = :farm_count, `farm_expect_get_length` = :farm_expect_get_length where `qq` = :qq;"
 
     @staticmethod
     def _sql_delete_single_data(qq: int):
@@ -451,7 +451,7 @@ class DB_Farm:
                     "farm_latest_plant_time": TimeConst.DEFAULT_NONE_TIME,
                     "farm_need_time": 0,
                     "farm_count": 0,
-                    'farm_expect_get_length': 0,
+                    "farm_expect_get_length": 0,
                 }
             )
 
