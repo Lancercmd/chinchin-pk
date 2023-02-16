@@ -32,11 +32,11 @@ class OpFrom:
 class FarmConst:
 
     status_empty = "empty"
-    status_planted = "planted"
+    status_planting = "planting"
 
     @classmethod
     def is_planting(cls, status=None):
-        return status == cls.status_planted
+        return status == cls.status_planting
 
     @classmethod
     def is_empty(cls, status=None):

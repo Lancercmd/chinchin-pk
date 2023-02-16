@@ -29,6 +29,11 @@ class FarmSystem:
         # cache
         cache = configs
         return cache
+    
+    @staticmethod
+    def modify_config_in_runtime(config: dict):
+        global cache
+        cache = config
 
     @classmethod
     def is_current_can_play(cls):

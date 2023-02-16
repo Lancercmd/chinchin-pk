@@ -47,10 +47,9 @@ def message_processor(
     TODO: 牛子最小排行
     TODO：牛子成就额外的提示语
     TODO: 物品系统
-
-    TODO: 牛子农场
-    TODO: 朋友系统
     TODO: 抽取 utils 文件的导入
+
+    TODO: 朋友系统
     """
     # lazy init database
     lazy_init_database()
@@ -138,7 +137,11 @@ def message_processor(
     is_current_planting = Chinchin_farm.check_planting_status(ctx)
 
     def eager_return():
-        return send_message(qq, group, join([], "\n"))
+        # TODO ：急的次数太多获得 “急急国王” 成就
+        message_arr = [
+            "你的牛子还在闭关修炼中，无法进行其他操作，我知道你很急，但你先别急！"
+        ]
+        return send_message(qq, group, join(message_arr, "\n"))
 
     # >>> 匹配阶段
     # 牛子仙境 (search)
@@ -761,12 +764,7 @@ class Chinchin_farm:
     def check_planting_status(ctx):
         qq = ctx["qq"]
         is_current_planting = FarmSystem.is_current_planting(qq)
-        # if plant over，update data
-        if is_current_planting:
-            # TODO ：急的次数太多获得 “急急国王” 成就
-            ctx["msg_ctx"]["before"].append("你的牛子还在闭关修炼中，无法进行其他操作，我知道你很急，但你先别急！")
-            # need eager return
-        else:
+        if not is_current_planting:
             data = DB.sub_db_farm.get_user_data(qq)
             is_plant_over = FarmConst.is_planting(data["farm_status"])
             if is_plant_over:
