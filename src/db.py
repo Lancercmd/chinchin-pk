@@ -1,5 +1,5 @@
 import os
-from .utils import get_now_time, is_date_outed, fixed_two_decimal_digits
+from .utils import ArrowUtil, fixed_two_decimal_digits
 from .config import Config
 from .rebirth_view import RebirthSystem_View
 from .constants import FarmConst, TimeConst
@@ -8,41 +8,43 @@ import sqlite3
 sql_ins = None
 
 
-class Paths():
+class Paths:
     @staticmethod
     def base_db_path_v1():
-        return os.path.join(os.path.dirname(__file__), 'data')
+        return os.path.join(os.path.dirname(__file__), "data")
 
     @staticmethod
     def base_db_dir():
-        return os.path.join(os.path.dirname(__file__), 'data-v2')
+        return os.path.join(os.path.dirname(__file__), "data-v2")
 
     @classmethod
     def sqlite_path(cls):
-        return os.path.join(cls.base_db_dir(), 'data.sqlite')
+        return os.path.join(cls.base_db_dir(), "data.sqlite")
 
 
-class MigrationHelper():
+class MigrationHelper:
     @staticmethod
     def old_data_check():
         # check old v1 data exist and tip
         if os.path.exists(Paths.base_db_path_v1()):
             print(
-                '[Chinchin::Deprecated]: 目录 src/data-v2 新数据已经初始化，旧 v1 版本数据 src/data 已经不再使用，可以备份后手动删除！')
+                "[Chinchin::Deprecated]: 目录 src/data-v2 新数据已经初始化，旧 v1 版本数据 src/data 已经不再使用，可以备份后手动删除！"
+            )
             print(
-                '[Chinchin::Deprecated]: 若使用了 scripts/database_migrate_python/migrate.py 备份脚本，默认会备份到 src/data-v1-backup 下面')
+                "[Chinchin::Deprecated]: 若使用了 scripts/database_migrate_python/migrate.py 备份脚本，默认会备份到 src/data-v1-backup 下面"
+            )
 
 
-class Sql_UserInfo():
+class Sql_UserInfo:
     @staticmethod
     def _empty_data_handler(data: dict):
         if data["latest_speech_nickname"] is None:
-            data['latest_speech_nickname'] = ''
+            data["latest_speech_nickname"] = ""
         return data
 
     @staticmethod
     def _sql_create_table():
-        return 'create table if not exists `info` (`qq` bigint, `latest_speech_nickname` varchar(255), `latest_speech_group` bigint, primary key (`qq`));'
+        return "create table if not exists `info` (`qq` bigint, `latest_speech_nickname` varchar(255), `latest_speech_group` bigint, primary key (`qq`));"
 
     @classmethod
     def _sql_insert_single_data(cls, data: dict):
@@ -51,11 +53,13 @@ class Sql_UserInfo():
 
     @staticmethod
     def _sql_select_single_data(qq: int):
-        return f'select * from `info` where `qq` = {qq};'
+        return f"select * from `info` where `qq` = {qq};"
 
     @staticmethod
     def _sql_check_table_exists():
-        return 'select count(*) from sqlite_master where type = "table" and name = "info";'
+        return (
+            'select count(*) from sqlite_master where type = "table" and name = "info";'
+        )
 
     @classmethod
     def _sql_update_single_data(cls, data: dict):
@@ -64,18 +68,18 @@ class Sql_UserInfo():
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
-        return f'select * from `info` where `qq` in {tuple(qqs)};'
+        return f"select * from `info` where `qq` in {tuple(qqs)};"
 
     @staticmethod
     def _sql_delete_single_data(qq: int):
-        return f'delete from `info` where `qq` = {qq};'
+        return f"delete from `info` where `qq` = {qq};"
 
     @staticmethod
     def deserialize(data: tuple):
         return {
-            'qq': data[0],
-            'latest_speech_nickname': data[1],
-            'latest_speech_group': data[2],
+            "qq": data[0],
+            "latest_speech_nickname": data[1],
+            "latest_speech_group": data[2],
         }
 
     @classmethod
@@ -89,10 +93,10 @@ class Sql_UserInfo():
         sql_ins.conn.commit()
 
 
-class Sql_rebirth():
+class Sql_rebirth:
     @staticmethod
     def _sql_create_table():
-        return 'create table if not exists `rebirth` (`qq` bigint, `latest_rebirth_time` varchar(255), `level` integer, primary key (`qq`));'
+        return "create table if not exists `rebirth` (`qq` bigint, `latest_rebirth_time` varchar(255), `level` integer, primary key (`qq`));"
 
     @staticmethod
     def _sql_insert_single_data(data: dict):
@@ -100,11 +104,11 @@ class Sql_rebirth():
 
     @staticmethod
     def _sql_select_single_data(qq: int):
-        return f'select * from `rebirth` where `qq` = {qq};'
+        return f"select * from `rebirth` where `qq` = {qq};"
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
-        return f'select * from `rebirth` where `qq` in {tuple(qqs)};'
+        return f"select * from `rebirth` where `qq` in {tuple(qqs)};"
 
     @staticmethod
     def _sql_check_table_exists():
@@ -116,14 +120,14 @@ class Sql_rebirth():
 
     @staticmethod
     def _sql_delete_single_data(qq: int):
-        return f'delete from `rebirth` where `qq` = {qq};'
+        return f"delete from `rebirth` where `qq` = {qq};"
 
     @staticmethod
     def deserialize(data: tuple):
         return {
-            'qq': data[0],
-            'latest_rebirth_time': data[1],
-            'level': data[2],
+            "qq": data[0],
+            "latest_rebirth_time": data[1],
+            "level": data[2],
         }
 
     @classmethod
@@ -155,7 +159,7 @@ class Sql_rebirth():
         return [cls.deserialize(data) for data in sql_ins.cursor.fetchall()]
 
 
-class DB_Rebirth():
+class DB_Rebirth:
     @staticmethod
     def get_rebirth_data(qq: int):
         return Sql_rebirth.select_single_data(qq)
@@ -169,11 +173,10 @@ class DB_Rebirth():
         Sql_rebirth.update_single_data(data)
 
 
-class Sql_badge():
-
+class Sql_badge:
     @staticmethod
     def _sql_create_table():
-        return 'create table if not exists `badge` (`qq` bigint, `badge_ids` varchar(255), `glue_me_count` bigint, `glue_target_count` bigint, `glue_plus_count` bigint, `glue_plus_length_total` bigint, `glue_punish_count` bigint, `glue_punish_length_total` bigint, `pk_win_count` bigint, `pk_lose_count` bigint, `pk_plus_length_total` bigint, `pk_punish_length_total` bigint, `lock_me_count` bigint, `lock_target_count` bigint, `lock_plus_count` bigint, `lock_punish_count` bigint, `lock_plus_length_total` bigint, `lock_punish_length_total` bigint, primary key (`qq`));'
+        return "create table if not exists `badge` (`qq` bigint, `badge_ids` varchar(255), `glue_me_count` bigint, `glue_target_count` bigint, `glue_plus_count` bigint, `glue_plus_length_total` bigint, `glue_punish_count` bigint, `glue_punish_length_total` bigint, `pk_win_count` bigint, `pk_lose_count` bigint, `pk_plus_length_total` bigint, `pk_punish_length_total` bigint, `lock_me_count` bigint, `lock_target_count` bigint, `lock_plus_count` bigint, `lock_punish_count` bigint, `lock_plus_length_total` bigint, `lock_punish_length_total` bigint, primary key (`qq`));"
 
     @staticmethod
     def _sql_insert_single_data(data: dict):
@@ -181,11 +184,11 @@ class Sql_badge():
 
     @staticmethod
     def _sql_select_single_data(qq: int):
-        return f'select * from `badge` where `qq` = {qq};'
+        return f"select * from `badge` where `qq` = {qq};"
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
-        return f'select * from `badge` where `qq` in {tuple(qqs)};'
+        return f"select * from `badge` where `qq` in {tuple(qqs)};"
 
     @staticmethod
     def _sql_update_single_data(data: dict):
@@ -193,7 +196,7 @@ class Sql_badge():
 
     @staticmethod
     def _sql_delete_single_data(qq: int):
-        return f'delete from `badge` where `qq` = {qq};'
+        return f"delete from `badge` where `qq` = {qq};"
 
     @staticmethod
     def _sql_check_table_exist():
@@ -251,8 +254,7 @@ class Sql_badge():
         return [cls.deserialize(data) for data in sql_ins.cursor.fetchall()]
 
 
-class DB_Badge():
-
+class DB_Badge:
     @staticmethod
     def init_user_data(qq: int):
         data = Sql_badge.select_single_data(qq)
@@ -275,7 +277,7 @@ class DB_Badge():
                 "lock_plus_count": 0,
                 "lock_punish_count": 0,
                 "lock_plus_length_total": 0,
-                "lock_punish_length_total": 0
+                "lock_punish_length_total": 0,
             }
             Sql_badge.insert_single_data(data)
 
@@ -364,35 +366,34 @@ class DB_Badge():
     @staticmethod
     def update_badge_ids(qq: int, badge_ids: list):
         data = Sql_badge.select_single_data(qq)
-        data['badge_ids'] = badge_ids
+        data["badge_ids"] = badge_ids
         Sql_badge.update_single_data(data)
 
 
-class Sql_farm():
-
+class Sql_farm:
     @staticmethod
     def _sql_create_table():
-        return 'create table if not exists `farm` (`qq` bigint, `farm_status` varchar(255), `farm_latest_plant_time` varchar(255), primary key (`qq`));'
+        return "create table if not exists `farm` (`qq` bigint, `farm_status` varchar(255), `farm_latest_plant_time` varchar(255), `farm_need_time` integer, `farm_count` integer, primary key (`qq`));"
 
     @staticmethod
     def _sql_insert_single_data():
-        return 'insert into `farm` (`qq`, `farm_status`, `farm_latest_plant_time`) values (:qq, :farm_status, :farm_latest_plant_time);'
+        return "insert into `farm` (`qq`, `farm_status`, `farm_latest_plant_time`, `farm_need_time`, `farm_count`) values (:qq, :farm_status, :farm_latest_plant_time, :farm_need_time, :farm_count);"
 
     @staticmethod
     def _sql_select_single_data(qq: int):
-        return f'select * from `farm` where `qq` = {qq};'
+        return f"select * from `farm` where `qq` = {qq};"
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
-        return f'select * from `farm` where `qq` in {tuple(qqs)};'
+        return f"select * from `farm` where `qq` in {tuple(qqs)};"
 
     @staticmethod
     def _sql_update_single_data():
-        return 'update `farm` set `farm_status` = :farm_status, `farm_latest_plant_time` = :farm_latest_plant_time where `qq` = :qq;'
+        return "update `farm` set `farm_status` = :farm_status, `farm_latest_plant_time` = :farm_latest_plant_time, `farm_need_time` = :farm_need_time, `farm_count` = :farm_count where `qq` = :qq;"
 
     @staticmethod
     def _sql_delete_single_data(qq: int):
-        return f'delete from `farm` where `qq` = {qq};'
+        return f"delete from `farm` where `qq` = {qq};"
 
     @staticmethod
     def _sql_check_table_exists():
@@ -401,9 +402,11 @@ class Sql_farm():
     @staticmethod
     def deserialize(data: tuple):
         return {
-            'qq': data[0],
-            'farm_status': data[1],
-            'farm_latest_plant_time': data[2]
+            "qq": data[0],
+            "farm_status": data[1],
+            "farm_latest_plant_time": data[2],
+            "farm_need_time": data[3],
+            "farm_count": data[4],
         }
 
     @classmethod
@@ -435,20 +438,31 @@ class Sql_farm():
         return [cls.deserialize(data) for data in sql_ins.cursor.fetchall()]
 
 
-class DB_Farm():
-
+class DB_Farm:
     @staticmethod
     def init_user_data(qq: int):
         data = Sql_farm.select_signle_data(qq)
         if data is None:
-            Sql_farm.insert_single_data({
-                'qq': qq,
-                'farm_status': FarmConst.status_empty,
-                'farm_latest_plant_time': TimeConst.DEFAULT_NONE_TIME
-            })
+            Sql_farm.insert_single_data(
+                {
+                    "qq": qq,
+                    "farm_status": FarmConst.status_empty,
+                    "farm_latest_plant_time": TimeConst.DEFAULT_NONE_TIME,
+                    "farm_need_time": 0,
+                    "farm_count": 0,
+                }
+            )
+
+    @staticmethod
+    def get_user_data(qq: int):
+        return Sql_farm.select_signle_data(qq)
+
+    @staticmethod
+    def update_user_data(data: dict):
+        Sql_farm.update_single_data(data)
 
 
-class Sql():
+class Sql:
 
     sub_table_info = Sql_UserInfo()
     sub_table_rebirth = Sql_rebirth()
@@ -462,7 +476,7 @@ class Sql():
 
     @staticmethod
     def __sql_create_table():
-        return 'create table if not exists `users` (`qq` bigint, `length` float, `daily_lock_count` integer, `daily_pk_count` integer, `daily_glue_count` integer, `register_time` varchar(255), `latest_daily_lock` varchar(255), `latest_daily_pk` varchar(255), `latest_daily_glue` varchar(255), `pk_time` varchar(255), `pked_time` varchar(255), `glueing_time` varchar(255), `glued_time` varchar(255), `locked_time` varchar(255), primary key (`qq`));'
+        return "create table if not exists `users` (`qq` bigint, `length` float, `daily_lock_count` integer, `daily_pk_count` integer, `daily_glue_count` integer, `register_time` varchar(255), `latest_daily_lock` varchar(255), `latest_daily_pk` varchar(255), `latest_daily_glue` varchar(255), `pk_time` varchar(255), `pked_time` varchar(255), `glueing_time` varchar(255), `glued_time` varchar(255), `locked_time` varchar(255), primary key (`qq`));"
 
     @staticmethod
     def __sql_insert_single_data(data: dict):
@@ -470,7 +484,7 @@ class Sql():
 
     @staticmethod
     def __sql_select_single_data(qq: int):
-        return f'select * from `users` where `qq` = {qq};'
+        return f"select * from `users` where `qq` = {qq};"
 
     @staticmethod
     def __sql_check_table_exists():
@@ -482,12 +496,12 @@ class Sql():
 
     @staticmethod
     def __sql_get_data_counts():
-        return 'select count(*) from `users`;'
+        return "select count(*) from `users`;"
 
     @staticmethod
     def __sql_order_by_length():
-        max = Config.get_config('ranking_list_length')
-        return f'select * from `users` order by `length` desc limit {max};'
+        max = Config.get_config("ranking_list_length")
+        return f"select * from `users` order by `length` desc limit {max};"
 
     @classmethod
     def get_top_users(cls) -> list:
@@ -511,20 +525,20 @@ class Sql():
     @staticmethod
     def deserialize(one: tuple):
         return {
-            'qq': one[0],
-            'length': one[1],
-            'daily_lock_count': one[2],
-            'daily_pk_count': one[3],
-            'daily_glue_count': one[4],
-            'register_time': one[5],
-            'latest_daily_lock': one[6],
-            'latest_daily_pk': one[7],
-            'latest_daily_glue': one[8],
-            'pk_time': one[9],
-            'pked_time': one[10],
-            'glueing_time': one[11],
-            'glued_time': one[12],
-            'locked_time': one[13]
+            "qq": one[0],
+            "length": one[1],
+            "daily_lock_count": one[2],
+            "daily_pk_count": one[3],
+            "daily_glue_count": one[4],
+            "register_time": one[5],
+            "latest_daily_lock": one[6],
+            "latest_daily_pk": one[7],
+            "latest_daily_glue": one[8],
+            "pk_time": one[9],
+            "pked_time": one[10],
+            "glueing_time": one[11],
+            "glued_time": one[12],
+            "locked_time": one[13],
         }
 
     @classmethod
@@ -539,14 +553,22 @@ class Sql():
     def check_table_exists(cls):
         create_table_funs = [
             [cls.__sql_check_table_exists, cls.__sql_create_table],
-            [cls.sub_table_info._sql_check_table_exists,
-                cls.sub_table_info._sql_create_table],
-            [cls.sub_table_rebirth._sql_check_table_exists,
-                cls.sub_table_rebirth._sql_create_table],
-            [cls.sub_table_badge._sql_check_table_exist,
-                cls.sub_table_badge._sql_create_table],
-            [cls.sub_table_farm._sql_check_table_exists,
-                cls.sub_table_farm._sql_create_table]
+            [
+                cls.sub_table_info._sql_check_table_exists,
+                cls.sub_table_info._sql_create_table,
+            ],
+            [
+                cls.sub_table_rebirth._sql_check_table_exists,
+                cls.sub_table_rebirth._sql_create_table,
+            ],
+            [
+                cls.sub_table_badge._sql_check_table_exist,
+                cls.sub_table_badge._sql_create_table,
+            ],
+            [
+                cls.sub_table_farm._sql_check_table_exists,
+                cls.sub_table_farm._sql_create_table,
+            ],
         ]
         # check users, info, rebirth table exists
         for funs in create_table_funs:
@@ -570,7 +592,7 @@ class Sql():
         if not os.path.exists(Paths.base_db_dir()):
             os.mkdir(Paths.base_db_dir())
         if not os.path.exists(Paths.sqlite_path()):
-            open(Paths.sqlite_path(), 'w').close()
+            open(Paths.sqlite_path(), "w").close()
         sql_ins = Sql()
         sql_ins.check_table_exists()
         MigrationHelper.old_data_check()
@@ -580,7 +602,7 @@ class Sql():
         self.conn.close()
 
 
-class DB_UserInfo():
+class DB_UserInfo:
     @staticmethod
     def is_user_exists(qq: int):
         sql_ins.cursor.execute(Sql.sub_table_info._sql_select_single_data(qq))
@@ -592,21 +614,23 @@ class DB_UserInfo():
         is_exists = cls.is_user_exists(qq)
         if is_exists:
             sql_ins.cursor.execute(
-                Sql.sub_table_info._sql_update_single_data(data), data)
+                Sql.sub_table_info._sql_update_single_data(data), data
+            )
         else:
             sql_ins.cursor.execute(
-                Sql.sub_table_info._sql_insert_single_data(data), data)
+                Sql.sub_table_info._sql_insert_single_data(data), data
+            )
         sql_ins.conn.commit()
 
 
-class DataUtils():
+class DataUtils:
     @staticmethod
     def __assign(data_1: dict, data_2: dict):
         return {**data_1, **data_2}
 
     @staticmethod
     def __make_qq_to_data_map(data: list):
-        return {one['qq']: one for one in data}
+        return {one["qq"]: one for one in data}
 
     @classmethod
     def merge_data(cls, data_1: dict, data_2: dict):
@@ -626,11 +650,11 @@ class DataUtils():
                     maps[0][key] = cls.__assign(maps[0][key], maps[i][key])
         result = []
         for user in datas[0]:
-            result.append(maps[0][user['qq']])
+            result.append(maps[0][user["qq"]])
         return result
 
 
-class DB():
+class DB:
 
     sub_db_info = DB_UserInfo()
     sub_db_rebirth = DB_Rebirth()
@@ -668,45 +692,46 @@ class DB():
     @classmethod
     def length_increase(cls, qq: int, length: float):
         """
-          only allow `main.py` call
+        only allow `main.py` call
         """
         user_data = cls.load_data(qq)
-        user_data['length'] += length
+        user_data["length"] += length
         # ensure fixed 2
-        user_data['length'] = fixed_two_decimal_digits(
-            user_data['length'], to_number=True)
+        user_data["length"] = fixed_two_decimal_digits(
+            user_data["length"], to_number=True
+        )
         cls.write_data(user_data)
 
     @classmethod
     def length_decrease(cls, qq: int, length: float):
         """
-          only allow `main.py` call
+        only allow `main.py` call
         """
         user_data = cls.load_data(qq)
         will_punish_length = 0
-        pure_length = user_data['length']
+        pure_length = user_data["length"]
         # 不能把转生者打降转
-        level = user_data.get('level')
+        level = user_data.get("level")
         if level is not None:
             length_view = RebirthSystem_View.get_rebirth_view_by_level(
-                level=level,
-                length=pure_length
+                level=level, length=pure_length
             )
-            pure_length = length_view['pure_length']
+            pure_length = length_view["pure_length"]
         # TODO: 禁止负值，更好的提示
         if (pure_length - length) < 0:
             will_punish_length = pure_length
         else:
             will_punish_length = length
         will_punish_length = fixed_two_decimal_digits(
-            will_punish_length, to_number=True)
-        user_data['length'] -= will_punish_length
+            will_punish_length, to_number=True
+        )
+        user_data["length"] -= will_punish_length
         cls.write_data(user_data)
 
     @classmethod
     def record_time(cls, qq: int, key: str):
         user_data = cls.load_data(qq)
-        user_data[key] = get_now_time()
+        user_data[key] = ArrowUtil.get_now_time()
         cls.write_data(user_data)
 
     @classmethod
@@ -718,12 +743,12 @@ class DB():
     @classmethod
     def is_lock_daily_limited(cls, qq: int):
         user_data = cls.load_data(qq)
-        current_count = user_data['daily_lock_count']
-        is_outed = is_date_outed(user_data['latest_daily_lock'])
+        current_count = user_data["daily_lock_count"]
+        is_outed = ArrowUtil.is_date_outed(user_data["latest_daily_lock"])
         if is_outed:
-            cls.reset_daily_count(qq, 'daily_lock_count')
+            cls.reset_daily_count(qq, "daily_lock_count")
             return False
-        max = Config.get_config('lock_daily_max')
+        max = Config.get_config("lock_daily_max")
         if current_count >= max:
             return True
         return False
@@ -731,19 +756,19 @@ class DB():
     @classmethod
     def count_lock_daily(cls, qq: int):
         user_data = cls.load_data(qq)
-        user_data['daily_lock_count'] += 1
-        user_data['latest_daily_lock'] = get_now_time()
+        user_data["daily_lock_count"] += 1
+        user_data["latest_daily_lock"] = ArrowUtil.get_now_time()
         cls.write_data(user_data)
 
     @classmethod
     def is_glue_daily_limited(cls, qq: int):
         user_data = cls.load_data(qq)
-        current_count = user_data['daily_glue_count']
-        is_outed = is_date_outed(user_data['latest_daily_glue'])
+        current_count = user_data["daily_glue_count"]
+        is_outed = ArrowUtil.is_date_outed(user_data["latest_daily_glue"])
         if is_outed:
-            cls.reset_daily_count(qq, 'daily_glue_count')
+            cls.reset_daily_count(qq, "daily_glue_count")
             return False
-        max = Config.get_config('glue_daily_max')
+        max = Config.get_config("glue_daily_max")
         if current_count >= max:
             return True
         return False
@@ -751,19 +776,19 @@ class DB():
     @classmethod
     def count_glue_daily(cls, qq: int):
         user_data = cls.load_data(qq)
-        user_data['daily_glue_count'] += 1
-        user_data['latest_daily_glue'] = get_now_time()
+        user_data["daily_glue_count"] += 1
+        user_data["latest_daily_glue"] = ArrowUtil.get_now_time()
         cls.write_data(user_data)
 
     @classmethod
     def is_pk_daily_limited(cls, qq: int):
         user_data = cls.load_data(qq)
-        current_count = user_data['daily_pk_count']
-        is_outed = is_date_outed(user_data['latest_daily_pk'])
+        current_count = user_data["daily_pk_count"]
+        is_outed = ArrowUtil.is_date_outed(user_data["latest_daily_pk"])
         if is_outed:
-            cls.reset_daily_count(qq, 'daily_pk_count')
+            cls.reset_daily_count(qq, "daily_pk_count")
             return False
-        max = Config.get_config('pk_daily_max')
+        max = Config.get_config("pk_daily_max")
         if current_count >= max:
             return True
         return False
@@ -771,18 +796,18 @@ class DB():
     @classmethod
     def count_pk_daily(cls, qq: int):
         user_data = cls.load_data(qq)
-        user_data['daily_pk_count'] += 1
-        user_data['latest_daily_pk'] = get_now_time()
+        user_data["daily_pk_count"] += 1
+        user_data["latest_daily_pk"] = ArrowUtil.get_now_time()
         cls.write_data(user_data)
 
     @classmethod
     def is_pk_protected(cls, qq: int):
         """
-          TODO: 对转生者可以刷分，以后需要限制
+        TODO: 对转生者可以刷分，以后需要限制
         """
         user_data = cls.load_data(qq)
-        min_length = Config.get_config('pk_guard_chinchin_length')
-        if user_data['length'] <= min_length:
+        min_length = Config.get_config("pk_guard_chinchin_length")
+        if user_data["length"] <= min_length:
             return True
         return False
 
@@ -798,12 +823,10 @@ class DB():
         badge_list = Sql.sub_table_badge.select_batch_data_by_qqs(qqs)
         badge_list_picked = []
         for one in badge_list:
-            badge_list_picked.append({
-                'qq': one['qq'],
-                'badge_ids': one['badge_ids']
-            })
+            badge_list_picked.append({"qq": one["qq"], "badge_ids": one["badge_ids"]})
         merged = DB.utils.merge_data_list(
-            [top_users, info_list, rebirth_list, badge_list_picked])
+            [top_users, info_list, rebirth_list, badge_list_picked]
+        )
         return merged
 
 

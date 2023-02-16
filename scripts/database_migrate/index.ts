@@ -221,6 +221,8 @@ const run = async () => {
         table.bigint('qq').primary()
         table.string('farm_status')
         table.string('farm_latest_plant_time')
+        table.integer('farm_need_time')
+        table.integer('farm_count')
       })
       .toSQL()
     // @ts-expect-error
@@ -230,6 +232,8 @@ const run = async () => {
         qq: 123456789,
         farm_status: 'status',
         farm_latest_plant_time: '2023-01-25 02:26:52',
+        farm_need_time: 0,
+        farm_count: 0,
       })
       .toSQL()
     sql.push(insertSqlWithFarm.sql)
