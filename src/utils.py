@@ -88,14 +88,12 @@ class ArrowUtil:
         return start_timestamp <= now_timestamp <= end_timestamp
 
     @staticmethod
-    def get_end_time_by_start_time(start_time: str, duration: int):
+    def get_time_with_shift(time: str, shift_mins: int):
         """
-        start_time: YYYY-MM-DD HH:mm:ss
-        duration: minutes
+            start_time: YYYY-MM-DD HH:mm:ss
+            duration: minutes
         """
-        return (
-            arrow_get(start_time).shift(minutes=duration).format("YYYY-MM-DD HH:mm:ss")
-        )
+        return arrow_get(time).shift(minutes=shift_mins).format("YYYY-MM-DD HH:mm:ss")
 
     @staticmethod
     def lt(time_1: str, time_2: str):
@@ -108,7 +106,8 @@ class ArrowUtil:
     @staticmethod
     def calc_diff_minutes(time_1: str, time_2: str):
         return int(
-            (arrow_get(time_1).int_timestamp - arrow_get(time_2).int_timestamp) / 60
+            (arrow_get(time_1).int_timestamp -
+             arrow_get(time_2).int_timestamp) / 60
         )
 
     @staticmethod

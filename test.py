@@ -4,6 +4,7 @@ from src.db import DB, Sql
 from src.main import message_processor, KEYWORDS
 from src.utils import get_object_values, ArrowUtil
 from src.config import Config
+from src.farm import FarmSystem
 import sys
 
 user_1 = 123456789
@@ -398,6 +399,73 @@ def pull_4():
     wrap(user_1, '看他牛子', at_qq=user_2, comment='1 查看 2 牛子')
     wrap(user_1, '看他牛子', at_qq=user_3, comment='1 查看 3 牛子')
 
+def test_farm():
+
+    wrap(user_1, '注册牛子', comment='1 注册')
+    wrap(user_2, '注册牛子', comment='2 注册')
+
+    # 查仙境信息
+    wrap(user_1, '牛子仙境', comment='1 查仙境信息')
+
+    # 开始修炼
+    # 不允许修炼
+    config = FarmSystem.read_farm_config()
+    config['can_play_time']['duration'] = { 'h': 0, 'm': 0 }
+    FarmSystem.modify_config_in_runtime(config)
+    wrap(user_1, '牛子修炼', comment='1 开始修炼，不在时间内没法修炼')
+
+    # 可以修炼的时间
+    config = FarmSystem.read_farm_config()
+    config['can_play_time']['start'] = "00:00"
+    config['can_play_time']['duration'] = { 'h': 24, 'm': 0 }
+    FarmSystem.modify_config_in_runtime(config)
+    wrap(user_1, '牛子练功', comment='1 开始修炼')
+    wrap(user_1, '牛子修仙', comment='1 修炼别名，无法继续')
+    wrap(user_1, '打胶', comment='1 在修炼，无法操作')
+    wrap(user_1, '🔒我', comment='1 在修炼，无法操作')
+    wrap(user_1, '🔒', user_2, comment='1 在修炼，无法操作')
+    wrap(user_1, 'pk', user_2, comment='1 在修炼，无法操作')
+    wrap(user_1, '打胶', user_2, comment='1 在修炼，无法操作')
+    wrap(user_1, '牛子转生', comment='1 在修炼，无法操作')
+    # 可以查
+    wrap(user_1, '牛子', comment='1 查信息，可以')
+    wrap(user_1, '牛子成就', comment='1 查成就，可以')
+    wrap(user_1, '牛子排名', comment='1 查排名，可以')
+    wrap(user_1, '牛子仙境', comment='1 查仙境，可以')
+
+    # 修炼阶段改变
+    data = DB.sub_db_farm.get_user_data(user_1)
+    now = ArrowUtil.get_now_time()
+    data['farm_latest_plant_time'] = ArrowUtil.get_time_with_shift(
+        now, shift_mins=(-1 * 60 * 4)
+    )
+    DB.sub_db_farm.update_user_data(data)
+    wrap(user_1, '牛子仙境', comment='1 查仙境，阶段变了')
+
+    # 修炼完了
+    data = DB.sub_db_farm.get_user_data(user_1)
+    now = ArrowUtil.get_now_time()
+    data['farm_latest_plant_time'] = ArrowUtil.get_time_with_shift(
+        now, shift_mins=(-1 * 60 * 5) - 1
+    )
+    DB.sub_db_farm.update_user_data(data)
+    wrap(user_1, 'pk', user_2, comment='1 pk，可以活动了，并且修炼结束')
+    wrap(user_1, '牛子仙境', comment='1 查仙境，修炼结束')
+    wrap(user_1, '牛子', comment='1 查牛子信息')
+
+    # 再修炼一次
+    wrap(user_1, '牛子修炼', comment='1 开始修炼')
+    wrap(user_2, '牛子修炼', comment='2 开始修炼')
+    wrap(user_1, '牛子仙境', comment='1 查仙境')
+
+    # 修炼时间结束了
+    config = FarmSystem.read_farm_config()
+    config['can_play_time']['duration'] = { 'h': 0, 'm': 0 }
+    FarmSystem.modify_config_in_runtime(config)
+    wrap(user_1, '牛子修炼', comment='1 反复修炼，但修炼时间结束了')
+
+
+
 if __name__ == '__main__':
     clear_database()
 
@@ -420,6 +488,10 @@ if __name__ == '__main__':
     # args: --pull-4
     if arg('--pull-4'):
         pull_4()
+
+    # args: --farm
+    if arg('--farm'):
+        test_farm()
 
     # clear log
     if arg('--clear'):

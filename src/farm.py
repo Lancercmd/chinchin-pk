@@ -43,8 +43,8 @@ class FarmSystem:
         )
         duration = config["can_play_time"]["duration"]
         total_duration_minutes = duration["h"] * 60 + duration["m"]
-        end_time = ArrowUtil.get_end_time_by_start_time(
-            start_time=start_time, duration=total_duration_minutes
+        end_time = ArrowUtil.get_time_with_shift(
+            time=start_time, shift_mins=total_duration_minutes
         )
         is_can_play = ArrowUtil.is_now_in_time_range(start=start_time, end=end_time)
         return is_can_play
@@ -59,8 +59,8 @@ class FarmSystem:
             return False
         latest_plant_time = data["farm_latest_plant_time"]
         need_time = data["farm_need_time"]  # minutes
-        end_time = ArrowUtil.get_end_time_by_start_time(
-            start_time=latest_plant_time, duration=need_time
+        end_time = ArrowUtil.get_time_with_shift(
+            time=latest_plant_time, shift_mins=need_time
         )
         now = ArrowUtil.get_now_time()
         is_plant_over = ArrowUtil.lt(time_1=end_time, time_2=now)
@@ -81,7 +81,8 @@ class FarmSystem:
         reward = config["reward"]
         min = reward["min"]
         max = reward["max"]
-        return Config.random_value(min, max)
+        base = reward["base"]
+        return base + Config.random_value(min, max)
 
     @classmethod
     def start_plant(cls, qq: int):
@@ -110,12 +111,23 @@ class FarmSystem:
         current_status_idx = 0
         cost = config["cost"]
         for i in range(len(cost)):
-            value = cost[i]
-            time = value["time"]
+            if i == 0:
+                first_time = cost[i]["time"]
+                first_time_minutes = first_time["h"] * 60 + first_time["m"]
+                if spent_time <= first_time_minutes:
+                    current_status_idx = i
+                    break
+                continue
+            # current
+            time = cost[i]["time"]
             time_minutes = time["h"] * 60 + time["m"]
-            if spent_time <= time_minutes:
+            # prev
+            prev_idx = i - 1
+            prev_time = cost[prev_idx]["time"]
+            prev_time_minutes = prev_time["h"] * 60 + prev_time["m"]
+            # > prev and <= current
+            if spent_time > prev_time_minutes and spent_time <= time_minutes:
                 current_status_idx = i
-            else:
                 break
         return cost[current_status_idx]
 

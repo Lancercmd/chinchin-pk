@@ -139,7 +139,7 @@ def message_processor(
     def eager_return():
         # TODO ：急的次数太多获得 “急急国王” 成就
         message_arr = [
-            "你的牛子还在闭关修炼中，无法进行其他操作，我知道你很急，但你先别急！"
+            "你的牛子还在闭关修炼中，无法进行其他操作，我知道你很急，但你先别急"
         ]
         return send_message(qq, group, join(message_arr, "\n"))
 
