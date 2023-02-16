@@ -5,7 +5,7 @@ from .config import Config
 from .cd import CD_Check
 from .rebirth import RebirthSystem
 from .badge import BadgeSystem
-from .constants import OpFrom
+from .constants import OpFrom, TimeConst
 from typing import Optional
 
 KEYWORDS = {
@@ -21,7 +21,7 @@ KEYWORDS = {
     'badge': ['牛子成就']
 }
 
-DEFAULT_NONE_TIME = '2000-01-01 00:00:00'
+DEFAULT_NONE_TIME = TimeConst.DEFAULT_NONE_TIME
 
 
 def message_processor(
@@ -42,6 +42,10 @@ def message_processor(
         TODO: 转生级别不同不能较量
         TODO: 牛子最小排行
         TODO：牛子成就额外的提示语
+        TODO: 物品系统
+
+        TODO: 牛子农场
+        TODO: 朋友系统
     """
     # lazy init database
     lazy_init_database()
@@ -61,6 +65,7 @@ def message_processor(
         "after": []
     }
     # hack send message impl
+
     def create_send_message_hook(origin_send_message):
         def send_message_hook(qq, group, message):
             before = join(msg_ctx['before'], '\n')
@@ -85,8 +90,10 @@ def message_processor(
         'latest_speech_group': group,
         'latest_speech_nickname': nickname,
     })
-    # 记录数据 - badge
+    # 初始化数据 - badge
     DB.sub_db_badge.init_user_data(qq)
+    # 初始化数据 - farm
+    DB.sub_db_farm.init_user_data(qq)
 
     # flow context
     ctx = {

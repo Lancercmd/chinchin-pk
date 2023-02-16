@@ -16,14 +16,23 @@ class OpFrom():
     OTHER = 'other_weight'
 
     @classmethod
-    def is_lock(cls, op = None):
+    def is_lock(cls, op=None):
         return op in [cls.LOCK, cls.LOCK_ME, cls.LOCK_WITH_TARGET]
 
     @classmethod
-    def is_glue(cls, op = None):
+    def is_glue(cls, op=None):
         return op in [cls.GLUE, cls.GLUE_ME, cls.GLUE_WITH_TARGET]
-    
+
     @classmethod
-    def is_pk(cls, op = None):
+    def is_pk(cls, op=None):
         return op in [cls.PK, cls.PK_WIN, cls.PK_LOSE]
-        
+
+
+class FarmConst():
+
+    status_empty = 'empty'
+    status_planted = 'planted'
+
+class TimeConst():
+
+    DEFAULT_NONE_TIME = '2000-01-01 00:00:00'

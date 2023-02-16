@@ -214,6 +214,37 @@ const run = async () => {
       .toSQL()
     sql.push(deleteSqlWithBadge.sql)
 
+    // farm
+    sql.push('-- Farm Table --')
+    const createSqlWithFarm = await ins.schema
+      .createTableIfNotExists('farm', (table) => {
+        table.bigint('qq').primary()
+        table.string('farm_status')
+        table.string('farm_latest_plant_time')
+      })
+      .toSQL()
+    // @ts-expect-error
+    sql.push(createSqlWithFarm[0].sql)
+    const insertSqlWithFarm = await ins('farm')
+      .insert({
+        qq: 123456789,
+        farm_status: 'status',
+        farm_latest_plant_time: '2023-01-25 02:26:52',
+      })
+      .toSQL()
+    sql.push(insertSqlWithFarm.sql)
+    const selectSqlWithFarm = await ins('farm')
+      .select('*')
+      .where('qq', 123456789)
+      .toSQL()
+    sql.push(selectSqlWithFarm.sql)
+    // delete
+    const deleteSqlWithFarm = await ins('farm')
+      .where('qq', 123456789)
+      .del()
+      .toSQL()
+    sql.push(deleteSqlWithFarm.sql)
+
     // write
     fs.writeFileSync(SQL_FILE, sql.join(';\n') + ';\n', 'utf-8')
   } catch (e) {

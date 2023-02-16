@@ -2,6 +2,7 @@ import os
 from .utils import get_now_time, is_date_outed, fixed_two_decimal_digits
 from .config import Config
 from .rebirth_view import RebirthSystem_View
+from .constants import FarmConst, TimeConst
 import sqlite3
 
 sql_ins = None
@@ -367,11 +368,92 @@ class DB_Badge():
         Sql_badge.update_single_data(data)
 
 
+class Sql_farm():
+
+    @staticmethod
+    def _sql_create_table():
+        return 'create table if not exists `farm` (`qq` bigint, `farm_status` varchar(255), `farm_latest_plant_time` varchar(255), primary key (`qq`));'
+
+    @staticmethod
+    def _sql_insert_single_data():
+        return 'insert into `farm` (`qq`, `farm_status`, `farm_latest_plant_time`) values (:qq, :farm_status, :farm_latest_plant_time);'
+
+    @staticmethod
+    def _sql_select_single_data(qq: int):
+        return f'select * from `farm` where `qq` = {qq};'
+
+    @staticmethod
+    def _sql_batch_select_data(qqs: list):
+        return f'select * from `farm` where `qq` in {tuple(qqs)};'
+
+    @staticmethod
+    def _sql_update_single_data():
+        return 'update `farm` set `farm_status` = :farm_status, `farm_latest_plant_time` = :farm_latest_plant_time where `qq` = :qq;'
+
+    @staticmethod
+    def _sql_delete_single_data(qq: int):
+        return f'delete from `farm` where `qq` = {qq};'
+
+    @staticmethod
+    def _sql_check_table_exists():
+        return 'select count(*) from sqlite_master where type="table" and name="farm";'
+
+    @staticmethod
+    def deserialize(data: tuple):
+        return {
+            'qq': data[0],
+            'farm_status': data[1],
+            'farm_latest_plant_time': data[2]
+        }
+
+    @classmethod
+    def select_signle_data(cls, qq: int):
+        sql_ins.cursor.execute(cls._sql_select_single_data(qq))
+        one = sql_ins.cursor.fetchone()
+        if one is None:
+            return None
+        return cls.deserialize(one)
+
+    @classmethod
+    def insert_single_data(cls, data: dict):
+        sql_ins.cursor.execute(cls._sql_insert_single_data(), data)
+        sql_ins.conn.commit()
+
+    @classmethod
+    def update_single_data(cls, data: dict):
+        sql_ins.cursor.execute(cls._sql_update_single_data(), data)
+        sql_ins.conn.commit()
+
+    @classmethod
+    def delete_single_data(cls, qq: int):
+        sql_ins.cursor.execute(cls._sql_delete_single_data(qq))
+        sql_ins.conn.commit()
+
+    @classmethod
+    def select_batch_data_by_qqs(cls, qqs: list):
+        sql_ins.cursor.execute(cls._sql_batch_select_data(qqs))
+        return [cls.deserialize(data) for data in sql_ins.cursor.fetchall()]
+
+
+class DB_Farm():
+
+    @staticmethod
+    def init_user_data(qq: int):
+        data = Sql_farm.select_signle_data(qq)
+        if data is None:
+            Sql_farm.insert_single_data({
+                'qq': qq,
+                'farm_status': FarmConst.status_empty,
+                'farm_latest_plant_time': TimeConst.DEFAULT_NONE_TIME
+            })
+
+
 class Sql():
 
     sub_table_info = Sql_UserInfo()
     sub_table_rebirth = Sql_rebirth()
     sub_table_badge = Sql_badge()
+    sub_table_farm = Sql_farm()
 
     def __init__(self):
         self.sqlite_path = Paths.sqlite_path()
@@ -462,7 +544,9 @@ class Sql():
             [cls.sub_table_rebirth._sql_check_table_exists,
                 cls.sub_table_rebirth._sql_create_table],
             [cls.sub_table_badge._sql_check_table_exist,
-                cls.sub_table_badge._sql_create_table]
+                cls.sub_table_badge._sql_create_table],
+            [cls.sub_table_farm._sql_check_table_exists,
+                cls.sub_table_farm._sql_create_table]
         ]
         # check users, info, rebirth table exists
         for funs in create_table_funs:
@@ -551,6 +635,7 @@ class DB():
     sub_db_info = DB_UserInfo()
     sub_db_rebirth = DB_Rebirth()
     sub_db_badge = DB_Badge()
+    sub_db_farm = DB_Farm()
     utils = DataUtils()
 
     @staticmethod
