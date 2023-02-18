@@ -75,8 +75,6 @@ def message_processor(
     TODO: 物品系统
     TODO: 抽取 utils 文件的导入
     TODO: 牛子共享排行榜
-
-    TODO：朋友加成
     """
     # lazy init database
     lazy_init_database()
