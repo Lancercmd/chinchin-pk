@@ -106,7 +106,8 @@ class ArrowUtil:
     @staticmethod
     def calc_diff_minutes(time_1: str, time_2: str):
         return int(
-            (arrow_get(time_1).int_timestamp - arrow_get(time_2).int_timestamp) / 60
+            (arrow_get(time_1).int_timestamp -
+             arrow_get(time_2).int_timestamp) / 60
         )
 
     @staticmethod
@@ -119,6 +120,15 @@ class ArrowUtil:
         if is_this_year:
             return ins.format("MM-DD HH:mm")
         return ins.format("YYYY-MM-DD HH:mm")
+
+    @staticmethod
+    def get_time_diff_days(time_1: str, time_2: str):
+        time_1 = arrow_get(time_1).format("YYYY-MM-DD")
+        time_2 = arrow_get(time_2).format("YYYY-MM-DD")
+        return int(
+            (arrow_get(time_1).int_timestamp - arrow_get(time_2).int_timestamp)
+            / (60 * 60 * 24)
+        )
 
 
 class Random:

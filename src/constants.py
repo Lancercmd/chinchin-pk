@@ -14,6 +14,8 @@ class OpFrom:
 
     FARM_OVER = "farm_over_weight"
 
+    FRIENDS_COLLECT = "friends_collect_weight"
+
     OTHER = "other_weight"
 
     @classmethod

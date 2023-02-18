@@ -251,6 +251,43 @@ const run = async () => {
       .toSQL()
     sql.push(deleteSqlWithFarm.sql)
 
+    // friends table
+    sql.push('-- Friends Table --')
+    const createSqlWithFriends = await ins.schema
+      .createTableIfNotExists('friends', (table) => {
+        table.bigint('qq').primary()
+        table.string('friends_list') // 朋友列表
+        table.integer('friends_share_count') // 被共享次数
+        table.string('friends_cost_latest_time') // 上次付费日期
+        table.float('friends_will_collect_length') // 准备收取的长度
+        table.string('friends_collect_latest_time') // 上次收款时间
+      })
+      .toSQL()
+    // @ts-expect-error
+    sql.push(createSqlWithFriends[0].sql)
+    const insertSqlWithFriends = await ins('friends')
+      .insert({
+        qq: 123456789,
+        friends_list: '1,2,3',
+        friends_share_count: 0,
+        friends_cost_latest_time: '2023-01-25 02:26:52',
+        friends_will_collect_length: 0,
+        friends_collect_latest_time: '2023-01-25 02:26:52',
+      })
+      .toSQL()
+    sql.push(insertSqlWithFriends.sql)
+    const selectSqlWithFriends = await ins('friends')
+      .select('*')
+      .where('qq', 123456789)
+      .toSQL()
+    sql.push(selectSqlWithFriends.sql)
+    // delete
+    const deleteSqlWithFriends = await ins('friends')
+      .where('qq', 123456789)
+      .del()
+      .toSQL()
+    sql.push(deleteSqlWithFriends.sql)
+    
     // write
     fs.writeFileSync(SQL_FILE, sql.join(';\n') + ';\n', 'utf-8')
   } catch (e) {

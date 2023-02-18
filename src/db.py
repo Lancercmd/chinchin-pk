@@ -463,6 +463,102 @@ class DB_Farm:
     def update_user_data(data: dict):
         Sql_farm.update_single_data(data)
 
+class Sql_friends():
+    @staticmethod
+    def _sql_create_table():
+        return 'create table if not exists `friends` (`qq` bigint, `friends_list` varchar(255), `friends_share_count` integer, `friends_cost_latest_time` varchar(255), `friends_will_collect_length` float, `friends_collect_latest_time` varchar(255), primary key (`qq`));'
+    
+    @staticmethod
+    def _sql_insert_single_data():
+        return 'insert into `friends` (`qq`, `friends_list`, `friends_share_count`, `friends_cost_latest_time`, `friends_will_collect_length`, `friends_collect_latest_time`) values (:qq, :friends_list, :friends_share_count, :friends_cost_latest_time, :friends_will_collect_length, :friends_collect_latest_time);'
+    
+    @staticmethod
+    def _sql_select_single_data(qq: int):
+        return f'select * from `friends` where `qq` = {qq};'
+    
+    @staticmethod
+    def _sql_batch_select_data(qqs: list):
+        return f'select * from `friends` where `qq` in {tuple(qqs)};'
+    
+    @staticmethod
+    def _sql_update_single_data():
+        return 'update `friends` set `friends_list` = :friends_list, `friends_share_count` = :friends_share_count, `friends_cost_latest_time` = :friends_cost_latest_time, `friends_will_collect_length` = :friends_will_collect_length, `friends_collect_latest_time` = :friends_collect_latest_time where `qq` = :qq;'
+    
+    @staticmethod
+    def _sql_delete_single_data(qq: int):
+        return f'delete from `friends` where `qq` = {qq};'
+    
+    @staticmethod
+    def _sql_check_table_exists():
+        return 'select count(*) from sqlite_master where type="table" and name="friends";'
+    
+    @staticmethod
+    def deserialize(data: tuple):
+        return {
+            "qq": data[0],
+            "friends_list": data[1],
+            "friends_share_count": data[2],
+            "friends_cost_latest_time": data[3],
+            "friends_will_collect_length": data[4],
+            "friends_collect_latest_time": data[5],
+        }
+    
+    @classmethod
+    def select_signle_data(cls, qq: int):
+        sql_ins.cursor.execute(cls._sql_select_single_data(qq))
+        one = sql_ins.cursor.fetchone()
+        if one is None:
+            return None
+        return cls.deserialize(one)
+    
+    @classmethod
+    def insert_single_data(cls, data: dict):
+        sql_ins.cursor.execute(cls._sql_insert_single_data(), data)
+        sql_ins.conn.commit()
+    
+    @classmethod
+    def update_single_data(cls, data: dict):
+        sql_ins.cursor.execute(cls._sql_update_single_data(), data)
+        sql_ins.conn.commit()
+    
+    @classmethod
+    def delete_single_data(cls, qq: int):
+        sql_ins.cursor.execute(cls._sql_delete_single_data(qq))
+        sql_ins.conn.commit()
+    
+    @classmethod
+    def select_batch_data_by_qqs(cls, qqs: list):
+        sql_ins.cursor.execute(cls._sql_batch_select_data(qqs))
+        return [cls.deserialize(data) for data in sql_ins.cursor.fetchall()]
+    
+class DB_Friends():
+
+    @staticmethod
+    def init_user_data(qq: int):
+        data = Sql_friends.select_signle_data(qq)
+        if data is None:
+            Sql_friends.insert_single_data(
+                {
+                    "qq": qq,
+                    "friends_list": "",
+                    "friends_share_count": 0,
+                    "friends_cost_latest_time": TimeConst.DEFAULT_NONE_TIME,
+                    "friends_will_collect_length": 0,
+                    "friends_collect_latest_time": TimeConst.DEFAULT_NONE_TIME,
+                }
+            )
+
+    @staticmethod
+    def get_user_data(qq: int):
+        return Sql_friends.select_signle_data(qq)
+
+    @staticmethod
+    def update_user_data(data: dict):
+        Sql_friends.update_single_data(data)
+
+    @staticmethod
+    def get_batch_user_data(qqs: list):
+        return Sql_friends.select_batch_data_by_qqs(qqs)
 
 class Sql:
 
@@ -470,6 +566,7 @@ class Sql:
     sub_table_rebirth = Sql_rebirth()
     sub_table_badge = Sql_badge()
     sub_table_farm = Sql_farm()
+    sub_table_friends = Sql_friends()
 
     def __init__(self):
         self.sqlite_path = Paths.sqlite_path()
@@ -504,6 +601,10 @@ class Sql:
     def __sql_order_by_length():
         max = Config.get_config("ranking_list_length")
         return f"select * from `users` order by `length` desc limit {max};"
+
+    @staticmethod
+    def __sql_select_batch_data(qqs: list):
+        return f"select * from `users` where `qq` in {tuple(qqs)};"
 
     @classmethod
     def get_top_users(cls) -> list:
@@ -552,6 +653,12 @@ class Sql:
         return cls.deserialize(one)
 
     @classmethod
+    def select_batch_data(cls, qqs: list):
+        sql_ins.cursor.execute(cls.__sql_select_batch_data(qqs))
+        some = sql_ins.cursor.fetchall()
+        return [cls.deserialize(one) for one in some]
+
+    @classmethod
     def check_table_exists(cls):
         create_table_funs = [
             [cls.__sql_check_table_exists, cls.__sql_create_table],
@@ -571,6 +678,10 @@ class Sql:
                 cls.sub_table_farm._sql_check_table_exists,
                 cls.sub_table_farm._sql_create_table,
             ],
+            [
+                cls.sub_table_friends._sql_check_table_exists,
+                cls.sub_table_friends._sql_create_table,
+            ]
         ]
         # check users, info, rebirth table exists
         for funs in create_table_funs:
@@ -624,6 +735,10 @@ class DB_UserInfo:
             )
         sql_ins.conn.commit()
 
+    @classmethod
+    def get_batch_user_infos(qqs: list):
+        return Sql.sub_table_info.select_batch_data_by_qqs(qqs)
+
 
 class DataUtils:
     @staticmethod
@@ -662,6 +777,8 @@ class DB:
     sub_db_rebirth = DB_Rebirth()
     sub_db_badge = DB_Badge()
     sub_db_farm = DB_Farm()
+    sub_db_friends = DB_Friends()
+    
     utils = DataUtils()
 
     @staticmethod
@@ -831,6 +948,9 @@ class DB:
         )
         return merged
 
+    @staticmethod
+    def get_batch_users(qqs: list):
+        return Sql.select_batch_data(qqs)
 
 def lazy_init_database():
     Sql.init_database()
