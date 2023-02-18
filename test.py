@@ -653,8 +653,36 @@ def test_friends():
     wrap(user_2, '牛子', comment='2 隔日，自动断绝 2 和 3')
     wrap(user_3, '牛子', comment='3 隔日，自动断绝 2 和 3')
 
-    # ...
+    # 清空朋友
+    wrap(user_2, '取关牛子', user_1, comment='2 取关 1')
+    wrap(user_2, '取关牛子', user_3, comment='2 取关 3')
 
+    # reset length
+    data = DB.load_data(user_1)
+    data['length'] = 10
+    DB.write_data(data)
+    data2 = DB.load_data(user_2)
+    data2['length'] = 10
+    DB.write_data(data2)
+    # modify config
+    config = FriendsSystem.read_config()
+    config['addition']['lock_plus']['base'] = 10
+    config['addition']['glue_plus']['base'] = 20
+    config['addition']['pk_plus']['base'] = 1000
+    data3 = DB.load_data(user_3)
+    data3['length'] = 1000
+    DB.write_data(data3)
+    FriendsSystem.modify_config_in_runtime(config)
+    wrap(user_1, '牛子', comment='1 查信息，确认已被重置')
+    wrap(user_2, '打胶', user_1, comment='2 打胶 1，没加成')
+    wrap(user_2, '🔒', user_1, comment='2 🔒 1，没加成')
+    wrap(user_1, 'pk', user_3, comment='1 pk 3 ，无加成，失败')
+
+    wrap(user_1, '关注牛子', user_2, comment='1 交友 2')
+    wrap(user_2, '🔒', user_1, comment='2 🔒 1，有明显加成')
+    wrap(user_2, '打胶', user_1, comment='2 打胶 1，有明显加成')
+    wrap(user_1, 'pk', user_2, comment='1 pk 2 ，没加成，因为是朋友')
+    wrap(user_1, 'pk', user_3, comment='1 pk 3 ，有 1000 倍加成，胜利')
 
 def test_help():
 
@@ -700,4 +728,4 @@ if __name__ == '__main__':
     if arg('--clear'):
         clear_logger()
 
-    write_snapshot()
+    # write_snapshot()

@@ -175,7 +175,7 @@ def message_processor(
             DB.length_increase(
                 qq,
                 Chinchin_intercepor.length_operate(
-                    qq, friends_profit, source=OpFrom.FRIENDS_COLLECT
+                    qq, friends_profit, source=OpFrom.FRIENDS_COLLECT, at_qq=at_qq
                 ),
             )
         else:
@@ -269,13 +269,26 @@ def message_processor(
 
 class Chinchin_intercepor:
     @staticmethod
-    def length_operate(qq: int, origin_change: float, source: str = OpFrom.OTHER):
+    def length_operate(qq: int, origin_change: float, source: str = OpFrom.OTHER, at_qq: int = None):
+        # 转生加成
         rebirth_weight = RebirthSystem.get_weight_by_qq(qq)
         result = origin_change * rebirth_weight
+        # 成就加成
         result = BadgeSystem.handle_weighting_by_qq(qq, result, source)
+        # 朋友加成
+        result = FriendsSystem.handle_weighting(qq, at_qq=at_qq, length=result, source=source)
+        # fixed
         result = fixed_two_decimal_digits(result, to_number=True)
         return result
 
+    @staticmethod
+    def length_weight(qq: int, origin_length: float, source: str = OpFrom.OTHER, at_qq: int = None):
+        result = origin_length
+        # 朋友加成
+        result = FriendsSystem.handle_weighting(qq, at_qq=at_qq, length=result, source=source)
+        # fixed
+        result = fixed_two_decimal_digits(result, to_number=True)
+        return result
 
 class Chinchin_view:
     @staticmethod
@@ -617,7 +630,10 @@ class Chinchin_with_target:
         target_data = DB.load_data(at_qq)
         user_data = DB.load_data(qq)
         target_length = target_data.get("length")
-        user_length = user_data.get("length")
+        user_length = Chinchin_intercepor.length_weight(
+            origin_length=user_data.get("length"),
+            qq=qq, at_qq=at_qq, source=OpFrom.PK_FROM_LENGTH, 
+        )
         is_user_win = Config.is_pk_win(user_length, target_length)
         DB.record_time(qq, "pk_time")
         DB.record_time(at_qq, "pked_time")
@@ -629,10 +645,10 @@ class Chinchin_with_target:
             else:
                 pk_message = "pk成功了，对面牛子不值一提，你的是最棒的"
             user_plus_value = Chinchin_intercepor.length_operate(
-                qq, Config.get_pk_plus_value(), source=OpFrom.PK_WIN
+                qq, Config.get_pk_plus_value(), source=OpFrom.PK_WIN, at_qq=at_qq
             )
             target_punish_value = Chinchin_intercepor.length_operate(
-                qq, Config.get_pk_punish_value(), source=OpFrom.PK_LOSE
+                qq, Config.get_pk_punish_value(), source=OpFrom.PK_LOSE, at_qq=at_qq
             )
             # weighting from qq
             DB.length_increase(qq, user_plus_value)
@@ -687,7 +703,8 @@ class Chinchin_with_target:
             send_message(qq, group, join(message_arr, "\n"))
             return
         target_plus_value = Chinchin_intercepor.length_operate(
-            qq, Config.get_lock_plus_value(), source=OpFrom.LOCK_WITH_TARGET
+            qq, Config.get_lock_plus_value(), source=OpFrom.LOCK_WITH_TARGET,
+            at_qq=at_qq
         )
         # weighting from qq
         DB.length_increase(at_qq, target_plus_value)
@@ -730,7 +747,7 @@ class Chinchin_with_target:
         is_glue_failed = Config.is_hit("glue_negative_prob")
         if is_glue_failed:
             target_punish_value = Chinchin_intercepor.length_operate(
-                qq, Config.get_glue_punish_value(), source=OpFrom.GLUE_WITH_TARGET
+                qq, Config.get_glue_punish_value(), source=OpFrom.GLUE_WITH_TARGET_FAIL, at_qq=at_qq
             )
             # weighting from qq
             DB.length_decrease(at_qq, target_punish_value)
@@ -743,7 +760,7 @@ class Chinchin_with_target:
             send_message(qq, group, join(message_arr, "\n"))
         else:
             target_plus_value = Chinchin_intercepor.length_operate(
-                qq, Config.get_glue_plus_value(), source=OpFrom.GLUE_WITH_TARGET
+                qq, Config.get_glue_plus_value(), source=OpFrom.GLUE_WITH_TARGET_SUCCESS, at_qq=at_qq
             )
             # weighting from qq
             DB.length_increase(at_qq, target_plus_value)

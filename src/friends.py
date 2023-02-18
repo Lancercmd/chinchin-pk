@@ -1,6 +1,7 @@
 from .config import Config
 from .db import DB
 from .utils import fixed_two_decimal_digits, ArrowUtil, join
+from .constants import OpFrom
 
 cache = None
 
@@ -264,3 +265,55 @@ class FriendsSystem:
                 }
             else:
                 return None
+
+    @classmethod
+    def handle_weighting(cls, qq: int, at_qq: int, length: float, source = OpFrom.OTHER):
+        config = cls.read_config()
+        addition = config['addition']
+        # qq lock at_qq weighting
+        if source == OpFrom.LOCK_WITH_TARGET:
+            # check qq in at_qq friends list, then at_qq get extra length
+            friends_data = cls.get_friends_data(at_qq)
+            is_in_list = qq in friends_data["friends_list"]
+            if is_in_list:
+                qq_friends_data = cls.get_friends_data(qq)
+                share_count = qq_friends_data["friends_share_count"]
+                base_plus_percent = addition['lock_plus']['base']
+                share_plus_percent = addition['lock_plus']['share'] * share_count
+                total_plus_percent = base_plus_percent + share_plus_percent
+                return length * (1 + total_plus_percent)
+        # qq glue at_qq weighting
+        # FIXME: 这里只对成功有加成，其实不好，大力出奇迹，应该失败也加倍失败
+        if source == OpFrom.GLUE_WITH_TARGET_SUCCESS:
+            # check qq in at_qq friends list, then at_qq get extra length
+            friends_data = cls.get_friends_data(at_qq)
+            is_in_list = qq in friends_data["friends_list"]
+            if is_in_list:
+                qq_friends_data = cls.get_friends_data(qq)
+                share_count = qq_friends_data["friends_share_count"]
+                base_plus_percent = addition['glue_plus']['base']
+                share_plus_percent = addition['glue_plus']['share'] * share_count
+                total_plus_percent = base_plus_percent + share_plus_percent
+                return length * (1 + total_plus_percent)
+        # qq pk at_qq weighting
+        if source == OpFrom.PK_FROM_LENGTH:
+            friends_data = cls.get_friends_data(qq)
+            friends_list = friends_data["friends_list"]
+            has_friends = len(friends_list) > 0
+            if not has_friends:
+                return length
+            # 如果 pk 朋友，要剔除掉被 pk 的朋友，他不会帮你，更真实
+            if at_qq in friends_list:
+                friends_list.remove(at_qq)
+            # weighting all friends
+            infos = cls.get_batch_friends_info_by_qqs(friends_list)
+            total_plus_length = 0
+            base_plus_percent = addition['pk_plus']['base']
+            share_plus_percent = addition['pk_plus']['share']
+            for info in infos:
+                share_count = info["friends_share_count"]
+                total_plus_percent = base_plus_percent + share_plus_percent * share_count
+                total_plus_length += info['length'] * total_plus_percent
+            return length + total_plus_length
+        return length
+    
