@@ -33,9 +33,7 @@ KEYWORDS = {
 }
 
 VERSION = '2.6.0'
-HELPPER = f"""牛了个牛 v{VERSION}
-可用的指令/功能有：
-""" + "、".join(
+HELPPER = f"牛了个牛 v{VERSION}\n可用的指令/功能有：\n" + "、".join(
     [
         KEYWORDS.get("sign_up")[0],
         KEYWORDS.get("chinchin")[0],
