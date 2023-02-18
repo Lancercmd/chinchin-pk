@@ -68,7 +68,7 @@ class Sql_UserInfo:
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
-        return f"select * from `info` where `qq` in {tuple(qqs)};"
+        return f"select * from `info` where `qq` in {Sql.utils.tupleify(qqs)};"
 
     @staticmethod
     def _sql_delete_single_data(qq: int):
@@ -108,7 +108,7 @@ class Sql_rebirth:
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
-        return f"select * from `rebirth` where `qq` in {tuple(qqs)};"
+        return f"select * from `rebirth` where `qq` in {Sql.utils.tupleify(qqs)};"
 
     @staticmethod
     def _sql_check_table_exists():
@@ -188,7 +188,7 @@ class Sql_badge:
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
-        return f"select * from `badge` where `qq` in {tuple(qqs)};"
+        return f"select * from `badge` where `qq` in {Sql.utils.tupleify(qqs)};"
 
     @staticmethod
     def _sql_update_single_data(data: dict):
@@ -385,7 +385,7 @@ class Sql_farm:
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
-        return f"select * from `farm` where `qq` in {tuple(qqs)};"
+        return f"select * from `farm` where `qq` in {Sql.utils.tupleify(qqs)};"
 
     @staticmethod
     def _sql_update_single_data():
@@ -479,7 +479,7 @@ class Sql_friends:
 
     @staticmethod
     def _sql_batch_select_data(qqs: list):
-        return f"select * from `friends` where `qq` in {tuple(qqs)};"
+        return f"select * from `friends` where `qq` in {Sql.utils.tupleify(qqs)};"
 
     @staticmethod
     def _sql_update_single_data():
@@ -563,6 +563,13 @@ class DB_Friends:
     def get_batch_user_data(qqs: list):
         return Sql_friends.select_batch_data_by_qqs(qqs)
 
+class Sql_utils():
+
+    @staticmethod
+    def tupleify(data: list):
+        if len(data) == 1:
+            return f'({data[0]})'
+        return tuple(data)
 
 class Sql:
 
@@ -571,6 +578,8 @@ class Sql:
     sub_table_badge = Sql_badge()
     sub_table_farm = Sql_farm()
     sub_table_friends = Sql_friends()
+
+    utils = Sql_utils()
 
     def __init__(self):
         self.sqlite_path = Paths.sqlite_path()
@@ -608,7 +617,7 @@ class Sql:
 
     @staticmethod
     def __sql_select_batch_data(qqs: list):
-        return f"select * from `users` where `qq` in {tuple(qqs)};"
+        return f"select * from `users` where `qq` in {Sql.utils.tupleify(qqs)};"
 
     @classmethod
     def get_top_users(cls) -> list:
@@ -739,7 +748,7 @@ class DB_UserInfo:
             )
         sql_ins.conn.commit()
 
-    @classmethod
+    @staticmethod
     def get_batch_user_infos(qqs: list):
         return Sql.sub_table_info.select_batch_data_by_qqs(qqs)
 

@@ -25,7 +25,7 @@ KEYWORDS = {
     "farm": ["牛子仙境"],
     "farm_start": ["牛子修炼", "牛子练功", "牛子修仙"],
     # friends
-    "friends": ["牛友"],
+    "friends": ["牛友", '牛子好友', '牛子朋友'],
     "friends_add": ["关注牛子", "添加牛友", "添加朋友"],
     "friends_delete": ["取关牛子", "删除牛友", "删除朋友"],
 }
@@ -308,11 +308,7 @@ class Chinchin_info:
                 prefix = "🥈"
             elif idx == 3:
                 prefix = "🥉"
-            if "latest_speech_nickname" not in user:
-                user["latest_speech_nickname"] = ""
-            nickname = user["latest_speech_nickname"]
-            if len(nickname) == 0:
-                nickname = "无名英雄"
+            nickname = user.get('latest_speech_nickname', "无名英雄")
             badge = BadgeSystem.get_first_badge_by_badge_string_arr(
                 user.get("badge_ids")
             )
@@ -863,7 +859,7 @@ class Chinchin_friends:
             return send_message(qq, group, join(message_arr, "\n"))
         # immediate pay
         DB.length_decrease(qq, daily_need_cost)
-        nickname = target_friends_data["latest_speech_nickname"]
+        nickname = target_friends_data.get("latest_speech_nickname", '无名英雄')
         message_arr = [
             f"“这是今天的朋友费...”，“要永远在一起喔o(*￣▽￣*)”，你付出了{daily_need_cost}cm，顺利和{nickname}成为了好朋友！",
         ]
@@ -887,7 +883,7 @@ class Chinchin_friends:
             message_arr = ["他不是你的牛友，又开始了是吧。"]
             return send_message(qq, group, join(message_arr, "\n"))
         # 删除朋友
-        nickname = friends_data["latest_speech_nickname"]
+        nickname = friends_data.get("latest_speech_nickname", '无名英雄')
         message_arr = [f"我要创造一个所有牛子都受伤的世界...，你们都是我的朋友，但你们也是我的敌人，和{nickname}断绝了关系"]
         FriendsSystem.delete_friends(qq, at_qq)
         return send_message(qq, group, join(message_arr, "\n"))

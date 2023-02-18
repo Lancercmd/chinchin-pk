@@ -2,7 +2,7 @@ from .config import Config
 from .db import DB
 from .utils import fixed_two_decimal_digits, ArrowUtil
 
-global cache
+cache = None
 
 
 class FriendsSystem:
@@ -19,12 +19,16 @@ class FriendsSystem:
     def get_friends_data(qq: int):
         data = DB.sub_db_friends.get_user_data(qq)
         friends = []
+        friends_list_str = data["friends_list"]
         # parse string to int list
-        friends_list = data["friends_list"].split(",")
-        for friend in friends_list:
-            qq_int = int(friend)
-            friends.append(qq_int)
-        data["friends_list"] = friends
+        if len(friends_list_str) != 0:
+            friends_str_list = friends_list_str.split(",")
+            for friend in friends_str_list:
+                qq_int = int(friend)
+                friends.append(qq_int)
+            data["friends_list"] = friends
+        else:
+            data["friends_list"] = []
         # search user data and merge
         user_data = DB.load_data(qq)
         merge = DB.utils.merge_data(user_data, data)
@@ -70,7 +74,7 @@ class FriendsSystem:
         # search friends info
         infos = cls.get_batch_friends_info_by_qqs(friends_list)
         for info in infos:
-            index = friends_list.index(info)
+            index = infos.index(info)
             nickname = info.get("latest_speech_nickname", "无名英雄")
             cost_daily = info["friends_need_cost"]
             share_count = info["friends_share_count"]
@@ -79,37 +83,39 @@ class FriendsSystem:
             )
         return "\n".join(message_arr)
 
-    @classmethod
-    def add_friends(cls, qq: int, target_qq: int):
+    @staticmethod
+    def add_friends(qq: int, target_qq: int):
         # add friend to qq
         data = DB.sub_db_friends.get_user_data(qq)
-        friends_list = data["friends_list"].split(",")
+        friends_list_str = data["friends_list"]
+        friends_list = friends_list_str.split(",") if len(friends_list_str) != 0 else []
         is_in_list = str(target_qq) in friends_list
         if not is_in_list:
             friends_list.append(str(target_qq))
         data["friends_list"] = ",".join(friends_list)
         # update pay time
         data["friends_cost_latest_time"] = ArrowUtil.get_now_time()
-        DB.sub_db_friends.update_user_data(qq, data)
+        DB.sub_db_friends.update_user_data(data)
         # add share count to target_qq
         target_data = DB.sub_db_friends.get_user_data(target_qq)
         target_data["friends_share_count"] += 1
-        DB.sub_db_friends.update_user_data(target_qq, target_data)
+        DB.sub_db_friends.update_user_data(target_data)
 
-    @classmethod
-    def delete_friends(cls, qq: int, target_qq: int):
+    @staticmethod
+    def delete_friends(qq: int, target_qq: int):
         # remove target from qq
         data = DB.sub_db_friends.get_user_data(qq)
-        friends_list = data["friends_list"].split(",")
+        friends_list_str = data["friends_list"]
+        friends_list = friends_list_str.split(",") if len(friends_list_str) != 0 else []
         is_in_list = str(target_qq) in friends_list
         if is_in_list:
             friends_list.remove(str(target_qq))
         data["friends_list"] = ",".join(friends_list)
-        DB.sub_db_friends.update_user_data(qq, data)
+        DB.sub_db_friends.update_user_data(data)
         # remove share count from target_qq
         target_data = DB.sub_db_friends.get_user_data(target_qq)
         target_data["friends_share_count"] -= 1
-        DB.sub_db_friends.update_user_data(target_qq, target_data)
+        DB.sub_db_friends.update_user_data(target_data)
 
     @classmethod
     def transfer_length(cls, target_qq: int, origin_length: float):
@@ -119,7 +125,7 @@ class FriendsSystem:
         will_transfer_length = origin_length * (1 - fee)
         data = DB.sub_db_friends.get_user_data(target_qq)
         data["friends_will_collect_length"] += will_transfer_length
-        DB.sub_db_friends.update_user_data(target_qq, data)
+        DB.sub_db_friends.update_user_data(data)
 
     @classmethod
     def check_friends_daily(cls, qq: int):
@@ -191,7 +197,7 @@ class FriendsSystem:
             friends_data["friends_will_collect_length"] = 0
             # update latest collect time: 这个字段还没什么用，先保留着吧
             friends_data["friends_collect_latest_time"] = ArrowUtil.get_now_time()
-            DB.sub_db_friends.update_user_data(qq, friends_data)
+            DB.sub_db_friends.update_user_data(friends_data)
             return {
                 "message": "\n".join(message_arr),
                 "profit": profit,  # > 0 or < 0
