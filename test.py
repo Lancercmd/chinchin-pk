@@ -728,4 +728,4 @@ if __name__ == '__main__':
     if arg('--clear'):
         clear_logger()
 
-    # write_snapshot()
+    write_snapshot()
