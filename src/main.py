@@ -56,7 +56,6 @@ def message_processor(
 
     TODO：朋友加成
     TODO: 排行榜展示朋友数据
-    TODO：个人信息展示朋友数据
     """
     # lazy init database
     lazy_init_database()
@@ -105,9 +104,9 @@ def message_processor(
         },
     )
     # 初始化数据 - badge
-    DB.sub_db_badge.init_user_data(qq)
+    DB.sub_db_badge.init_user_data(qq, at_qq)
     # 初始化数据 - farm
-    DB.sub_db_farm.init_user_data(qq)
+    DB.sub_db_farm.init_user_data(qq, at_qq)
     # 初始化数据 - friends
     DB.sub_db_friends.init_user_data(qq, at_qq)
 
@@ -336,7 +335,8 @@ class Chinchin_info:
         qq = ctx["qq"]
         group = ctx["group"]
         at_qq = ctx["at_qq"]
-        target_chinchin_info = ChinchinInternal.internal_get_chinchin_info(at_qq)
+        target_chinchin_info = ChinchinInternal.internal_get_chinchin_info(
+            at_qq)
         msg_text = join(target_chinchin_info, "\n")
         msg_text = msg_text.replace("【牛子信息】", "【对方牛子信息】")
         send_message(qq, group, msg_text)
@@ -361,6 +361,20 @@ class ChinchinInternal:
         )
         # length
         message_arr.append(f"长度: {length_label}")
+        # friends
+        friends_info = FriendsSystem.get_friends_data(qq)
+        share_need_cost = friends_info['friends_need_cost']
+        if share_need_cost > 0:
+            share_text = None
+            share_count = friends_info['friends_share_count']
+            if share_count > 0:
+                share_text = f"{share_count}人共享"
+            message_arr.append(
+                join([
+                    f"好友费: {share_need_cost}cm",
+                    share_text
+                ], '，')
+            )
         # locked
         if user_data.get("locked_time") != DEFAULT_NONE_TIME:
             message_arr.append(
@@ -371,12 +385,14 @@ class ChinchinInternal:
         # pk
         if user_data.get("pk_time") != DEFAULT_NONE_TIME:
             message_arr.append(
-                "最近pk时间: {}".format(ArrowUtil.date_improve(user_data.get("pk_time")))
+                "最近pk时间: {}".format(
+                    ArrowUtil.date_improve(user_data.get("pk_time")))
             )
         # pked
         if user_data.get("pked_time") != DEFAULT_NONE_TIME:
             message_arr.append(
-                "最近被pk时间: {}".format(ArrowUtil.date_improve(user_data.get("pked_time")))
+                "最近被pk时间: {}".format(ArrowUtil.date_improve(
+                    user_data.get("pked_time")))
             )
         # glueing
         if user_data.get("glueing_time") != DEFAULT_NONE_TIME:
@@ -394,7 +410,8 @@ class ChinchinInternal:
             )
         # register
         message_arr.append(
-            "注册时间: {}".format(ArrowUtil.date_improve(user_data.get("register_time")))
+            "注册时间: {}".format(ArrowUtil.date_improve(
+                user_data.get("register_time")))
         )
         return message_arr
 
@@ -426,7 +443,8 @@ class Chinchin_me:
                 punish_value = Config.get_lock_me_punish_value()
                 # not need weighting
                 DB.length_decrease(qq, punish_value)
-                message_arr = ["你的牛子还不够长，你🔒不着，牛子自尊心受到了伤害，缩短了{}厘米".format(punish_value)]
+                message_arr = [
+                    "你的牛子还不够长，你🔒不着，牛子自尊心受到了伤害，缩短了{}厘米".format(punish_value)]
                 send_message(qq, group, join(message_arr, "\n"))
             else:
                 message_arr = ["你的牛子太小了，还🔒不到"]
@@ -435,7 +453,8 @@ class Chinchin_me:
             # record record_lock_me_count to qq
             DB.sub_db_badge.record_lock_me_count(qq)
             # FIXME: 因为🔒自己回报高，这样会导致强者一直🔒自己，越强，所以需要一种小概率制裁机制。
-            is_lock_failed = Config.is_hit("lock_me_negative_prob_with_strong_person")
+            is_lock_failed = Config.is_hit(
+                "lock_me_negative_prob_with_strong_person")
             if is_lock_failed:
                 punish_value = Config.get_lock_punish_with_strong_person_value()
                 # not need weighting
@@ -443,7 +462,8 @@ class Chinchin_me:
                 # record record_lock_punish_count to qq
                 DB.sub_db_badge.record_lock_punish_count(qq)
                 # record record_lock_punish_length_total to qq
-                DB.sub_db_badge.record_lock_punish_length_total(qq, punish_value)
+                DB.sub_db_badge.record_lock_punish_length_total(
+                    qq, punish_value)
                 message_arr = ["你的牛子太长了，没🔒住爆炸了，缩短了{}厘米".format(punish_value)]
                 send_message(qq, group, join(message_arr, "\n"))
             else:
@@ -610,7 +630,8 @@ class Chinchin_with_target:
             # record pk_lose_count to qq
             DB.sub_db_badge.record_pk_lose_count(qq)
             # record record_pk_punish_length_total to qq
-            DB.sub_db_badge.record_pk_punish_length_total(qq, user_punish_value)
+            DB.sub_db_badge.record_pk_punish_length_total(
+                qq, user_punish_value)
             message_arr = [
                 "pk失败了，在对面牛子的阴影笼罩下，你的牛子减小了{}厘米，对面牛子增加了{}厘米".format(
                     user_punish_value, target_plus_value
@@ -691,7 +712,8 @@ class Chinchin_with_target:
             # record record_glue_punish_count to qq
             DB.sub_db_badge.record_glue_punish_count(qq)
             # record record_glue_punish_length_total to qq
-            DB.sub_db_badge.record_glue_punish_length_total(qq, target_punish_value)
+            DB.sub_db_badge.record_glue_punish_length_total(
+                qq, target_punish_value)
             message_arr = ["对方牛子快被大家冲坏了，减小{}厘米".format(target_punish_value)]
             send_message(qq, group, join(message_arr, "\n"))
         else:
@@ -703,8 +725,10 @@ class Chinchin_with_target:
             # record record_glue_plus_count to qq
             DB.sub_db_badge.record_glue_plus_count(qq)
             # record record_glue_plus_length_total to at_qq
-            DB.sub_db_badge.record_glue_plus_length_total(qq, target_plus_value)
-            message_arr = ["你的打胶让对方牛子感到很舒服，对方牛子增加{}厘米".format(target_plus_value)]
+            DB.sub_db_badge.record_glue_plus_length_total(
+                qq, target_plus_value)
+            message_arr = [
+                "你的打胶让对方牛子感到很舒服，对方牛子增加{}厘米".format(target_plus_value)]
             send_message(qq, group, join(message_arr, "\n"))
 
 
@@ -725,7 +749,8 @@ class Chinchin_upgrade:
             # punish
             punish_length = info["failed_info"]["failed_punish_length"]
             DB.length_decrease(qq, punish_length)
-            message_arr = ["细数牛界之中，贸然渡劫者九牛一生，牛子失去荔枝爆炸了，减小{}厘米".format(punish_length)]
+            message_arr = [
+                "细数牛界之中，贸然渡劫者九牛一生，牛子失去荔枝爆炸了，减小{}厘米".format(punish_length)]
             send_message(qq, group, join(message_arr, "\n"))
             return
         # success
@@ -891,6 +916,7 @@ class Chinchin_friends:
         nickname = friends_data.get("latest_speech_nickname")
         if not nickname:
             nickname = "无名英雄"
-        message_arr = [f"我要创造一个所有牛子都受伤的世界...，你们都是我的朋友，但也是我的敌人，和{nickname}断绝了关系"]
+        message_arr = [
+            f"我要创造一个所有牛子都受伤的世界...，你们都是我的朋友，但也是我的敌人，和{nickname}断绝了关系"]
         FriendsSystem.delete_friends(qq, at_qq)
         return send_message(qq, group, join(message_arr, "\n"))

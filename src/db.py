@@ -264,30 +264,33 @@ class Sql_badge:
 
 class DB_Badge:
     @staticmethod
-    def init_user_data(qq: int):
-        data = Sql_badge.select_single_data(qq)
-        if data is None:
-            data = {
-                "qq": qq,
-                "badge_ids": "",
-                "glue_me_count": 0,
-                "glue_target_count": 0,
-                "glue_plus_count": 0,
-                "glue_plus_length_total": 0,
-                "glue_punish_count": 0,
-                "glue_punish_length_total": 0,
-                "pk_win_count": 0,
-                "pk_lose_count": 0,
-                "pk_plus_length_total": 0,
-                "pk_punish_length_total": 0,
-                "lock_me_count": 0,
-                "lock_target_count": 0,
-                "lock_plus_count": 0,
-                "lock_punish_count": 0,
-                "lock_plus_length_total": 0,
-                "lock_punish_length_total": 0,
-            }
-            Sql_badge.insert_single_data(data)
+    def init_user_data(qq: int, at_qq: int = None):
+        for account in [qq, at_qq]:
+            if account is None:
+                continue
+            data = Sql_badge.select_single_data(account)
+            if data is None:
+                data = {
+                    "qq": account,
+                    "badge_ids": "",
+                    "glue_me_count": 0,
+                    "glue_target_count": 0,
+                    "glue_plus_count": 0,
+                    "glue_plus_length_total": 0,
+                    "glue_punish_count": 0,
+                    "glue_punish_length_total": 0,
+                    "pk_win_count": 0,
+                    "pk_lose_count": 0,
+                    "pk_plus_length_total": 0,
+                    "pk_punish_length_total": 0,
+                    "lock_me_count": 0,
+                    "lock_target_count": 0,
+                    "lock_plus_count": 0,
+                    "lock_punish_count": 0,
+                    "lock_plus_length_total": 0,
+                    "lock_punish_length_total": 0,
+                }
+                Sql_badge.insert_single_data(data)
 
     @classmethod
     def plus_value_by_ley(cls, qq: int, key: str, plus_value: int):
@@ -449,19 +452,22 @@ class Sql_farm:
 
 class DB_Farm:
     @staticmethod
-    def init_user_data(qq: int):
-        data = Sql_farm.select_signle_data(qq)
-        if data is None:
-            Sql_farm.insert_single_data(
-                {
-                    "qq": qq,
-                    "farm_status": FarmConst.status_empty,
-                    "farm_latest_plant_time": TimeConst.DEFAULT_NONE_TIME,
-                    "farm_need_time": 0,
-                    "farm_count": 0,
-                    "farm_expect_get_length": 0,
-                }
-            )
+    def init_user_data(qq: int, at_qq: int = None):
+        for account in [qq, at_qq]:
+            if account is None:
+                continue
+            data = Sql_farm.select_signle_data(account)
+            if data is None:
+                Sql_farm.insert_single_data(
+                    {
+                        "qq": account,
+                        "farm_status": FarmConst.status_empty,
+                        "farm_latest_plant_time": TimeConst.DEFAULT_NONE_TIME,
+                        "farm_need_time": 0,
+                        "farm_count": 0,
+                        "farm_expect_get_length": 0,
+                    }
+                )
 
     @staticmethod
     def get_user_data(qq: int):
@@ -546,14 +552,14 @@ class Sql_friends:
 class DB_Friends:
     @staticmethod
     def init_user_data(qq: int, at_qq: int = None):
-        for q in [qq, at_qq]:
-            if q is None:
+        for account in [qq, at_qq]:
+            if account is None:
                 continue
-            data = Sql_friends.select_signle_data(q)
+            data = Sql_friends.select_signle_data(account)
             if data is None:
                 Sql_friends.insert_single_data(
                     {
-                        "qq": q,
+                        "qq": account,
                         "friends_list": "",
                         "friends_share_count": 0,
                         "friends_cost_latest_time": TimeConst.DEFAULT_NONE_TIME,

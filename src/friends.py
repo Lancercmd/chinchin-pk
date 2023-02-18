@@ -20,8 +20,9 @@ class FriendsSystem:
         global cache
         cache = data
 
-    @staticmethod
-    def get_friends_data(qq: int):
+    @classmethod
+    def get_friends_data(cls, qq: int):
+        config = cls.read_config()
         data = DB.sub_db_friends.get_user_data(qq)
         friends = []
         friends_list_str = data["friends_list"]
@@ -37,6 +38,13 @@ class FriendsSystem:
         # search user data and merge
         user_data = DB.load_data(qq)
         info_data = DB.sub_db_info.get_user_info(qq)
+        # add calc cost
+        friends_need_cost = fixed_two_decimal_digits(
+            user_data['length'] * (
+                config['cost']['base'] + config['cost']['share'] * data['friends_share_count']),
+            to_number=True
+        )
+        data['friends_need_cost'] = friends_need_cost
         merge = DB.utils.merge_data(user_data, data, info_data)
         return merge
 
@@ -65,7 +73,8 @@ class FriendsSystem:
             }
             infos.append(info)
         # sort by cost desc
-        infos = sorted(infos, key=lambda x: x["friends_need_cost"], reverse=True)
+        infos = sorted(
+            infos, key=lambda x: x["friends_need_cost"], reverse=True)
         return infos
 
     @classmethod
@@ -118,7 +127,8 @@ class FriendsSystem:
         # remove target from qq
         data = DB.sub_db_friends.get_user_data(qq)
         friends_list_str = data["friends_list"]
-        friends_list = friends_list_str.split(",") if len(friends_list_str) != 0 else []
+        friends_list = friends_list_str.split(
+            ",") if len(friends_list_str) != 0 else []
         is_in_list = str(target_qq) in friends_list
         if is_in_list:
             friends_list.remove(str(target_qq))
@@ -224,7 +234,8 @@ class FriendsSystem:
                         if is_in_list:
                             friends_data["friends_list"].remove(target_qq)
                         # batch delete friends share count
-                        target_friends_data = DB.sub_db_friends.get_user_data(target_qq)
+                        target_friends_data = DB.sub_db_friends.get_user_data(
+                            target_qq)
                         target_friends_data["friends_share_count"] -= 1
                         DB.sub_db_friends.update_user_data(target_friends_data)
                 # update latest pay time
