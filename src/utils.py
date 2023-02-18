@@ -106,8 +106,7 @@ class ArrowUtil:
     @staticmethod
     def calc_diff_minutes(time_1: str, time_2: str):
         return int(
-            (arrow_get(time_1).int_timestamp -
-             arrow_get(time_2).int_timestamp) / 60
+            (arrow_get(time_1).int_timestamp - arrow_get(time_2).int_timestamp) / 60
         )
 
     @staticmethod
