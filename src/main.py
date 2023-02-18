@@ -28,9 +28,32 @@ KEYWORDS = {
     "friends": ["牛友", '牛子好友', '牛子朋友'],
     "friends_add": ["关注牛子", "添加牛友", "添加朋友"],
     "friends_delete": ["取关牛子", "删除牛友", "删除朋友"],
+    # help
+    "help": ["牛子帮助"],
 }
 
-DEFAULT_NONE_TIME = TimeConst.DEFAULT_NONE_TIME
+VERSION = '2.6.0'
+HELPPER = f"""牛了个牛 v{VERSION}
+可用的指令/功能有：
+""" + "、".join(
+    [
+        KEYWORDS.get("sign_up")[0],
+        KEYWORDS.get("chinchin")[0],
+        f"@某人 {KEYWORDS.get('see_chinchin')[0]}",
+        f"@某人 {KEYWORDS.get('pk')[0]}",
+        KEYWORDS.get("lock_me")[0],
+        f"@某人 {KEYWORDS.get('lock')[0]}",
+        KEYWORDS.get("glue")[0],
+        KEYWORDS.get("ranking")[0],
+        KEYWORDS.get("rebirth")[0],
+        KEYWORDS.get("badge")[0],
+        KEYWORDS.get("farm")[0],
+        KEYWORDS.get("farm_start")[0],
+        KEYWORDS.get("friends")[0],
+        f"@某人 {KEYWORDS.get('friends_add')[0]}",
+        f"@某人 {KEYWORDS.get('friends_delete')[0]}",
+    ]
+)
 
 
 def message_processor(
@@ -53,9 +76,9 @@ def message_processor(
     TODO：牛子成就额外的提示语
     TODO: 物品系统
     TODO: 抽取 utils 文件的导入
+    TODO: 牛子共享排行榜
 
     TODO：朋友加成
-    TODO: 排行榜展示朋友数据
     """
     # lazy init database
     lazy_init_database()
@@ -117,6 +140,10 @@ def message_processor(
         "group": group,
         "msg_ctx": msg_ctx,
     }
+
+    # 牛子帮助 (search)
+    if match_func(KEYWORDS.get("help"), message):
+        return Chinchin_help.entry_help(ctx)
 
     # 注册牛子
     if match_func(KEYWORDS.get("sign_up"), message):
@@ -191,7 +218,7 @@ def message_processor(
     # 牛友 (search)
     if match_func(KEYWORDS.get("friends"), message):
         return Chinchin_friends.entry_friends(ctx)
-
+    
     # 查询牛子信息 (search)
     # FIXME: 注意因为是模糊匹配，所以 “牛子” 的命令要放到所有 "牛子xxx" 命令的最后
     if match_func(KEYWORDS.get("chinchin"), message):
@@ -376,33 +403,33 @@ class ChinchinInternal:
                 ], '，')
             )
         # locked
-        if user_data.get("locked_time") != DEFAULT_NONE_TIME:
+        if user_data.get("locked_time") != TimeConst.DEFAULT_NONE_TIME:
             message_arr.append(
                 "最近被🔒时间: {}".format(
                     ArrowUtil.date_improve(user_data.get("locked_time"))
                 )
             )
         # pk
-        if user_data.get("pk_time") != DEFAULT_NONE_TIME:
+        if user_data.get("pk_time") != TimeConst.DEFAULT_NONE_TIME:
             message_arr.append(
                 "最近pk时间: {}".format(
                     ArrowUtil.date_improve(user_data.get("pk_time")))
             )
         # pked
-        if user_data.get("pked_time") != DEFAULT_NONE_TIME:
+        if user_data.get("pked_time") != TimeConst.DEFAULT_NONE_TIME:
             message_arr.append(
                 "最近被pk时间: {}".format(ArrowUtil.date_improve(
                     user_data.get("pked_time")))
             )
         # glueing
-        if user_data.get("glueing_time") != DEFAULT_NONE_TIME:
+        if user_data.get("glueing_time") != TimeConst.DEFAULT_NONE_TIME:
             message_arr.append(
                 "最近打胶时间: {}".format(
                     ArrowUtil.date_improve(user_data.get("glueing_time"))
                 )
             )
         # glued
-        if user_data.get("glued_time") != DEFAULT_NONE_TIME:
+        if user_data.get("glued_time") != TimeConst.DEFAULT_NONE_TIME:
             message_arr.append(
                 "最近被打胶时间: {}".format(
                     ArrowUtil.date_improve(user_data.get("glued_time"))
@@ -541,14 +568,14 @@ class Chinchin_me:
             "daily_lock_count": 0,
             "daily_pk_count": 0,
             "daily_glue_count": 0,
-            "latest_daily_lock": DEFAULT_NONE_TIME,
-            "latest_daily_pk": DEFAULT_NONE_TIME,
-            "latest_daily_glue": DEFAULT_NONE_TIME,
-            "pk_time": DEFAULT_NONE_TIME,
-            "pked_time": DEFAULT_NONE_TIME,
-            "glueing_time": DEFAULT_NONE_TIME,
-            "glued_time": DEFAULT_NONE_TIME,
-            "locked_time": DEFAULT_NONE_TIME,
+            "latest_daily_lock": TimeConst.DEFAULT_NONE_TIME,
+            "latest_daily_pk": TimeConst.DEFAULT_NONE_TIME,
+            "latest_daily_glue": TimeConst.DEFAULT_NONE_TIME,
+            "pk_time": TimeConst.DEFAULT_NONE_TIME,
+            "pked_time": TimeConst.DEFAULT_NONE_TIME,
+            "glueing_time": TimeConst.DEFAULT_NONE_TIME,
+            "glued_time": TimeConst.DEFAULT_NONE_TIME,
+            "locked_time": TimeConst.DEFAULT_NONE_TIME,
         }
         DB.create_data(new_user)
         message_arr = [
@@ -920,3 +947,11 @@ class Chinchin_friends:
             f"我要创造一个所有牛子都受伤的世界...，你们都是我的朋友，但也是我的敌人，和{nickname}断绝了关系"]
         FriendsSystem.delete_friends(qq, at_qq)
         return send_message(qq, group, join(message_arr, "\n"))
+
+class Chinchin_help():
+
+    @staticmethod
+    def entry_help(ctx: dict):
+        qq = ctx["qq"]
+        group = ctx["group"]
+        send_message(qq, group, HELPPER)

@@ -20,17 +20,21 @@ get_now_time = ArrowUtil.get_now_time
 k = get_object_values(KEYWORDS)
 print(k)
 
+
 def clear_logger():
     snapshot_dir = os.path.join(os.path.dirname(__file__), '__snapshot__')
-    logger_dirs = [os.path.join(snapshot_dir, d) for d in os.listdir(snapshot_dir) if os.path.isdir(os.path.join(snapshot_dir, d))]
+    logger_dirs = [os.path.join(snapshot_dir, d) for d in os.listdir(
+        snapshot_dir) if os.path.isdir(os.path.join(snapshot_dir, d))]
     max_file_count = 10
     for logger_dir in logger_dirs:
         files = os.listdir(logger_dir)
         if len(files) > max_file_count:
-            files.sort(key=lambda x: os.path.getmtime(os.path.join(logger_dir, x)))
+            files.sort(key=lambda x: os.path.getmtime(
+                os.path.join(logger_dir, x)))
             for file in files[:len(files) - max_file_count]:
                 print(f'remove {os.path.join(logger_dir, file)}')
                 os.remove(os.path.join(logger_dir, file))
+
 
 class bcolors:
     HEADER = '\033[95m'
@@ -46,6 +50,7 @@ class bcolors:
 
 snapshot = []
 
+
 def wrap_print_only(title: str, comment):
     print(bcolors.OKGREEN + "------" + title + "------" + bcolors.ENDC)
     is_string = isinstance(comment, str)
@@ -54,10 +59,11 @@ def wrap_print_only(title: str, comment):
         snapshot.append(comment)
     else:
         # dict to string
-        dictToString = '\n'.join([f'{key}: {value}' for (key, value) in comment.items()])
+        dictToString = '\n'.join(
+            [f'{key}: {value}' for (key, value) in comment.items()])
         print(dictToString)
         snapshot.append(dictToString)
-        
+
 
 def wrap(user: int, message: str, at_qq: int = None, comment: str = None):
     if comment:
@@ -249,6 +255,7 @@ def test_legacy():
     wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 在 100% 有可能赢 + 2')
     wrap(user_1, 'pk', user_2, comment='user 1 pk user 2 在 100% 有可能赢 + 3')
 
+
 def test_nickname():
     wrap(user_1, '注册牛子', comment='1 注册')
     wrap(user_2, '注册牛子', comment='2 注册')
@@ -321,6 +328,7 @@ def test_rebirth():
     wrap(user_3, '打胶', comment='user 3 打胶')
     wrap(user_3, '牛子', comment='user 3 查信息')
 
+
 def test_badge():
     wrap(user_1, '注册牛子', comment='1 注册')
     wrap(user_2, '注册牛子', comment='2 注册')
@@ -386,6 +394,8 @@ def test_badge():
     wrap(user_3, '打胶', at_qq=user_1, comment='3 打胶 1 有加权')
 
 # https://github.com/opq-osc/chinchin-pk/pull/4
+
+
 def pull_4():
 
     wrap(user_1, '注册牛子', comment='1 注册')
@@ -400,6 +410,7 @@ def pull_4():
     wrap(user_1, '看他牛子', at_qq=user_2, comment='1 查看 2 牛子')
     wrap(user_1, '看他牛子', at_qq=user_3, comment='1 查看 3 牛子')
 
+
 def test_farm():
 
     wrap(user_1, '注册牛子', comment='1 注册')
@@ -411,14 +422,14 @@ def test_farm():
     # 开始修炼
     # 不允许修炼
     config = FarmSystem.read_farm_config()
-    config['can_play_time']['duration'] = { 'h': 0, 'm': 0 }
+    config['can_play_time']['duration'] = {'h': 0, 'm': 0}
     FarmSystem.modify_config_in_runtime(config)
     wrap(user_1, '牛子修炼', comment='1 开始修炼，不在时间内没法修炼')
 
     # 可以修炼的时间
     config = FarmSystem.read_farm_config()
     config['can_play_time']['start'] = "00:00"
-    config['can_play_time']['duration'] = { 'h': 24, 'm': 0 }
+    config['can_play_time']['duration'] = {'h': 24, 'm': 0}
     FarmSystem.modify_config_in_runtime(config)
     wrap(user_1, '牛子练功', comment='1 开始修炼')
     wrap(user_1, '牛子修仙', comment='1 修炼别名，无法继续')
@@ -461,7 +472,7 @@ def test_farm():
 
     # 修炼时间结束了
     config = FarmSystem.read_farm_config()
-    config['can_play_time']['duration'] = { 'h': 0, 'm': 0 }
+    config['can_play_time']['duration'] = {'h': 0, 'm': 0}
     FarmSystem.modify_config_in_runtime(config)
     wrap(user_1, '牛子修炼', comment='1 反复修炼，但修炼时间结束了')
 
@@ -484,7 +495,7 @@ def test_friends():
     data['length'] = 0.9
     DB.write_data(data)
     data2 = DB.load_data(user_2)
-    data2['length'] = 100 # 预计需要 1cm 朋友费
+    data2['length'] = 100  # 预计需要 1cm 朋友费
     DB.write_data(data2)
     wrap(user_1, '关注牛子', user_2, comment='1 和 2 交朋友，没钱，交不起')
     data = DB.load_data(user_1)
@@ -505,7 +516,7 @@ def test_friends():
     assert data2['friends_share_count'] == 0
     assert data2['friends_list'] == ''
 
-    # 1 继续交 2 
+    # 1 继续交 2
     data = DB.load_data(user_1)
     data['length'] = 10
     DB.write_data(data)
@@ -516,12 +527,14 @@ def test_friends():
     data2 = DB.load_data(user_2)
     assert data2['length'] == 101.61
     expect_friends_cost = data2['length'] * 0.011
-    assert fixed_two_decimal_digits(expect_friends_cost, to_number=True) == 1.12
+    assert fixed_two_decimal_digits(
+        expect_friends_cost, to_number=True) == 1.12
     wrap(user_2, '牛子', comment='2 查信息')
     # 隔日
     yesterday = ArrowUtil.get_time_with_shift(
         ArrowUtil.get_now_time(), shift_days=-1
     )
+
     def jump_day(day: str):
         data = DB.sub_db_friends.get_user_data(user_1)
         data['friends_cost_latest_time'] = day
@@ -539,25 +552,25 @@ def test_friends():
     data['length'] = 10
     DB.write_data(data)
     data2 = DB.load_data(user_2)
-    data2['length'] = 100 # 预计收到 100 * 0.011 = 1.1cm 朋友费，扣掉 20% 手续费，收到 0.88cm
+    data2['length'] = 100  # 预计收到 100 * 0.011 = 1.1cm 朋友费，扣掉 20% 手续费，收到 0.88cm
     DB.write_data(data2)
     wrap(user_1, '牛子', user_2, comment='1 隔日，自己付了 1.1')
     wrap(user_2, '牛子', comment='2 隔日，自己收了 0.88')
     # 数据正确性
     data = DB.load_data(user_1)
-    assert data['length'] == 8.90 # 付了 1.1
+    assert data['length'] == 8.90  # 付了 1.1
     data2 = DB.load_data(user_2)
-    assert data2['length'] == 100.88 # 100 + 0.88
+    assert data2['length'] == 100.88  # 100 + 0.88
 
     # 有收入，有支出
     wrap(user_2, '关注牛子', user_1, comment='2 关注 1')
     wrap(user_2, '牛友', comment='2 查朋友列表')
     wrap(user_1, '牛友', comment='1 查朋友列表，现在双向关系')
     data = DB.load_data(user_1)
-    data['length'] = 10 # 预计收到 10 * 0.011 = 0.11cm 朋友费，扣掉 20% 手续费，收到 0.088cm
+    data['length'] = 10  # 预计收到 10 * 0.011 = 0.11cm 朋友费，扣掉 20% 手续费，收到 0.088cm
     DB.write_data(data)
     data2 = DB.load_data(user_2)
-    data2['length'] = 100 # 预计收到 0.88 朋友费
+    data2['length'] = 100  # 预计收到 0.88 朋友费
     DB.write_data(data2)
     # 隔日
     jump_day(yesterday)
@@ -642,6 +655,12 @@ def test_friends():
 
     # ...
 
+
+def test_help():
+
+    wrap(user_1, '牛子帮助', comment='1 查帮助')
+
+
 if __name__ == '__main__':
     clear_database()
 
@@ -660,7 +679,7 @@ if __name__ == '__main__':
     # args: --badge
     if arg('--badge'):
         test_badge()
-    
+
     # args: --pull-4
     if arg('--pull-4'):
         pull_4()
@@ -673,8 +692,12 @@ if __name__ == '__main__':
     if arg('--friends'):
         test_friends()
 
+    # args: --help
+    if arg('--help'):
+        test_help()
+
     # clear log
     if arg('--clear'):
         clear_logger()
 
-    # write_snapshot()
+    write_snapshot()

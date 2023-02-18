@@ -152,7 +152,8 @@ class FriendsSystem:
     @classmethod
     def check_friends_daily(cls, qq: int):
         """
-        注意朋友如果不上线（说话），长度不会自动转账，可以一直不说话跑路，上线那一天才会转账或友尽
+        1. 注意朋友如果不上线（说话），长度不会自动转账，可以一直不说话跑路，上线那一天才会转账或友尽
+        2. 朋友系统是懒支付，每天先说话的当天收益要到第二天才能领取，后说话的可以领先结算的人的收益
         """
         friends_data = cls.get_friends_data(qq)
         is_not_has_friends = len(friends_data["friends_list"]) == 0

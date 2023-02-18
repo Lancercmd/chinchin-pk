@@ -4,28 +4,11 @@ from botoy import jconfig, logger
 from botoy.collection import MsgTypes
 from botoy.parser import group as gp
 
-from .src.main import message_processor, KEYWORDS
+from .src.main import message_processor, KEYWORDS, VERSION, HELPPER
 from .src.utils import get_object_values, create_match_func_factory
 
-__version__ = "2.5.0"
-__doc__ = f"""牛子系统 v{__version__}
-可用的指令/功能有：
-""" + "、".join(
-    [
-        "/".join(KEYWORDS.get("chinchin")),
-        "/".join([i + "@某人" for i in KEYWORDS.get("pk")]),
-        "/".join(KEYWORDS.get("lock_me")),
-        "/".join([i + "@某人" for i in KEYWORDS.get("lock")]),
-        "/".join(KEYWORDS.get("glue")),
-        "/".join([i + "@某人" for i in KEYWORDS.get("see_chinchin")]),
-        "/".join(KEYWORDS.get("sign_up")),
-        "/".join(KEYWORDS.get("ranking")),
-        "/".join(KEYWORDS.get("rebirth")),
-        "/".join(KEYWORDS.get("badge")),
-        "/".join(KEYWORDS.get("farm")),
-        "/".join(KEYWORDS.get("farm_start")),
-    ]
-)
+__version__ = VERSION
+__doc__ = HELPPER
 config = jconfig.get_configuration("chinchin_system")
 groups = config.get("groups")
 
