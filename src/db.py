@@ -83,6 +83,14 @@ class Sql_UserInfo:
         }
 
     @classmethod
+    def select_single_data(cls, qq: int):
+        sql_ins.cursor.execute(cls._sql_select_single_data(qq))
+        one = sql_ins.cursor.fetchone()
+        if one is None:
+            return None
+        return cls.deserialize(one)
+
+    @classmethod
     def select_batch_data_by_qqs(cls, qqs: list):
         sql_ins.cursor.execute(cls._sql_batch_select_data(qqs))
         return [cls.deserialize(data) for data in sql_ins.cursor.fetchall()]
@@ -537,19 +545,22 @@ class Sql_friends:
 
 class DB_Friends:
     @staticmethod
-    def init_user_data(qq: int):
-        data = Sql_friends.select_signle_data(qq)
-        if data is None:
-            Sql_friends.insert_single_data(
-                {
-                    "qq": qq,
-                    "friends_list": "",
-                    "friends_share_count": 0,
-                    "friends_cost_latest_time": TimeConst.DEFAULT_NONE_TIME,
-                    "friends_will_collect_length": 0,
-                    "friends_collect_latest_time": TimeConst.DEFAULT_NONE_TIME,
-                }
-            )
+    def init_user_data(qq: int, at_qq: int = None):
+        for q in [qq, at_qq]:
+            if q is None:
+                continue
+            data = Sql_friends.select_signle_data(q)
+            if data is None:
+                Sql_friends.insert_single_data(
+                    {
+                        "qq": q,
+                        "friends_list": "",
+                        "friends_share_count": 0,
+                        "friends_cost_latest_time": TimeConst.DEFAULT_NONE_TIME,
+                        "friends_will_collect_length": 0,
+                        "friends_collect_latest_time": TimeConst.DEFAULT_NONE_TIME,
+                    }
+                )
 
     @staticmethod
     def get_user_data(qq: int):
@@ -557,6 +568,12 @@ class DB_Friends:
 
     @staticmethod
     def update_user_data(data: dict):
+        # FIXME: 兜底数据格式
+        is_friends_list_typeof_arr = isinstance(data["friends_list"], list)
+        if is_friends_list_typeof_arr:
+            # stringify and join
+            new_list = ",".join([str(q) for q in data["friends_list"]])
+            data["friends_list"] = new_list
         Sql_friends.update_single_data(data)
 
     @staticmethod
@@ -752,6 +769,10 @@ class DB_UserInfo:
     def get_batch_user_infos(qqs: list):
         return Sql.sub_table_info.select_batch_data_by_qqs(qqs)
 
+    @staticmethod
+    def get_user_info(qq: int):
+        return Sql.sub_table_info.select_single_data(qq)
+
 
 class DataUtils:
     @staticmethod
@@ -763,13 +784,16 @@ class DataUtils:
         return {one["qq"]: one for one in data}
 
     @classmethod
-    def merge_data(cls, data_1: dict, data_2: dict):
-        # handle None
-        if data_1 is None:
-            data_1 = {}
-        if data_2 is None:
-            data_2 = {}
-        return cls.__assign(data_1, data_2)
+    def merge_data(cls, *datas: list):
+        first_data = datas[0]
+        if first_data is None:
+            first_data = {}
+        for i in range(1, len(datas)):
+            value = datas[i]
+            if value is None:
+                continue
+            first_data = cls.__assign(first_data, value)
+        return first_data
 
     @classmethod
     def merge_data_list(cls, datas: list):
@@ -782,7 +806,6 @@ class DataUtils:
         for user in datas[0]:
             result.append(maps[0][user["qq"]])
         return result
-
 
 class DB:
 

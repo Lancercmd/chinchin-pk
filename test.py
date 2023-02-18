@@ -2,9 +2,10 @@ import os
 import time
 from src.db import DB, Sql
 from src.main import message_processor, KEYWORDS
-from src.utils import get_object_values, ArrowUtil
+from src.utils import get_object_values, ArrowUtil, fixed_two_decimal_digits
 from src.config import Config
 from src.farm import FarmSystem
+from src.friends import FriendsSystem
 import sys
 
 user_1 = 123456789
@@ -465,6 +466,181 @@ def test_farm():
     wrap(user_1, '牛子修炼', comment='1 反复修炼，但修炼时间结束了')
 
 
+def test_friends():
+
+    wrap(user_1, '注册牛子', comment='1 注册')
+    wrap(user_2, '注册牛子', comment='2 注册')
+    wrap(user_3, '注册牛子', comment='3 注册')
+
+    # 查看好友
+    wrap(user_1, '牛友', comment='1 查看好友，没朋友')
+
+    # 模拟增量
+    Sql.sub_table_friends.delete_single_data(user_2)
+
+    # 交朋友
+    wrap(user_1, '关注牛子', comment='1 和 空气 交朋友，没反应')
+    data = DB.load_data(user_1)
+    data['length'] = 0.9
+    DB.write_data(data)
+    data2 = DB.load_data(user_2)
+    data2['length'] = 100 # 预计需要 1cm 朋友费
+    DB.write_data(data2)
+    wrap(user_1, '关注牛子', user_2, comment='1 和 2 交朋友，没钱，交不起')
+    data = DB.load_data(user_1)
+    data['length'] = 1
+    DB.write_data(data)
+    wrap(user_1, '关注牛子', user_2, comment='1 和 2 交朋友，有钱，交朋友成功')
+    wrap(user_1, '牛子', comment='1 查信息，自己没牛子了')
+    wrap(user_1, '牛友', comment='1 查看好友，有朋友了')
+
+    # 2 看自己资产多了
+    wrap(user_2, '牛子', comment='2 查信息，长度收到了 0.8 ，扣了 20% 手续费')
+
+    # 友尽掉 2
+    wrap(user_1, '取关牛子', user_2, comment='1 友尽 2')
+    wrap(user_1, '牛友', comment='1 查看好友，没朋友了')
+    # 数据正确性
+    data2 = DB.sub_db_friends.get_user_data(user_2)
+    assert data2['friends_share_count'] == 0
+    assert data2['friends_list'] == ''
+
+    # 1 继续交 2 
+    data = DB.load_data(user_1)
+    data['length'] = 10
+    DB.write_data(data)
+    wrap(user_1, '关注牛子', user_2, comment='1 和 2 交朋友，有钱，交朋友成功')
+    wrap(user_2, '牛子', comment='2 查信息，第一笔账收到了')
+    wrap(user_1, '牛友', comment='1 查看好友，有朋友了，朋友费涨到 1.12，因为 2 的长度收了一次费用')
+    # 数据正确性
+    data2 = DB.load_data(user_2)
+    assert data2['length'] == 101.61
+    expect_friends_cost = data2['length'] * 0.011
+    assert fixed_two_decimal_digits(expect_friends_cost, to_number=True) == 1.12
+    wrap(user_2, '牛子', comment='2 查信息')
+    # 隔日
+    yesterday = ArrowUtil.get_time_with_shift(
+        ArrowUtil.get_now_time(), shift_days=-1
+    )
+    def jump_day(day: str):
+        data = DB.sub_db_friends.get_user_data(user_1)
+        data['friends_cost_latest_time'] = day
+        DB.sub_db_friends.update_user_data(data)
+        data = DB.sub_db_friends.get_user_data(user_2)
+        data['friends_cost_latest_time'] = day
+        DB.sub_db_friends.update_user_data(data)
+
+    # 假设过了一天
+    jump_day(yesterday)
+
+    # 1 只有支出，没有收入
+    # 2 只有收入，没有支出
+    data = DB.load_data(user_1)
+    data['length'] = 10
+    DB.write_data(data)
+    data2 = DB.load_data(user_2)
+    data2['length'] = 100 # 预计收到 100 * 0.011 = 1.1cm 朋友费，扣掉 20% 手续费，收到 0.88cm
+    DB.write_data(data2)
+    wrap(user_1, '牛子', user_2, comment='1 隔日，自己付了 1.1')
+    wrap(user_2, '牛子', comment='2 隔日，自己收了 0.88')
+    # 数据正确性
+    data = DB.load_data(user_1)
+    assert data['length'] == 8.90 # 付了 1.1
+    data2 = DB.load_data(user_2)
+    assert data2['length'] == 100.88 # 100 + 0.88
+
+    # 有收入，有支出
+    wrap(user_2, '关注牛子', user_1, comment='2 关注 1')
+    wrap(user_2, '牛友', comment='2 查朋友列表')
+    wrap(user_1, '牛友', comment='1 查朋友列表，现在双向关系')
+    data = DB.load_data(user_1)
+    data['length'] = 10 # 预计收到 10 * 0.011 = 0.11cm 朋友费，扣掉 20% 手续费，收到 0.088cm
+    DB.write_data(data)
+    data2 = DB.load_data(user_2)
+    data2['length'] = 100 # 预计收到 0.88 朋友费
+    DB.write_data(data2)
+    # 隔日
+    jump_day(yesterday)
+    # 天亮了
+    wrap(user_1, '牛子', comment='1 隔日，付了 1.1，没收钱，因为 2 没说话，2 没结算')
+    wrap(user_2, '牛子', comment='2 隔日，付了 0.11 ，收了 0.88')
+    wrap(user_1, '牛友', comment='1 查牛友，不会有多余的消息了')
+    # 隔日
+    jump_day(yesterday)
+    wrap(user_2, '牛子', comment='2 再隔日，只有支出，没有收入，因为 1 没结算')
+    wrap(user_1, '牛子', comment='1 再隔日，结算 昨天+今天的 2 的朋友费')
+
+    # 清空关系
+    wrap(user_1, '取关牛子', user_2, comment='1 取关 2')
+    wrap(user_2, '取关牛子', user_1, comment='2 取关 1 ，2 还有一笔结算要明天进行')
+
+    # 手续费
+    # pass ，前文 case 已经覆盖
+
+    # 最大值
+    def modify_max(max: int):
+        config = FriendsSystem.read_config()
+        config['max'] = max
+        FriendsSystem.modify_config_in_runtime(config)
+    modify_max(0)
+    wrap(user_1, '关注牛子', user_2, comment='1 和 2 交，没法交，到达上线了')
+
+    # 间隔多日
+    before_yesterday = ArrowUtil.get_time_with_shift(
+        ArrowUtil.get_now_time(), shift_days=-2
+    )
+    modify_max(1)
+    wrap(user_1, '关注牛子', user_2, comment='1 和 2 交')
+    wrap(user_2, '关注牛子', user_1, comment='2 和 1 交，昨天的结算了')
+    wrap(user_1, '牛子好友', comment='1 查好友列表，看看多少费用')
+    # 跳 2 天
+    jump_day(before_yesterday)
+    wrap(user_1, '牛子', comment='1 隔 2 日，需要付 2 倍')
+    wrap(user_2, '牛子', comment='2 隔 2 日')
+
+    # 多人测试
+    wrap(user_1, '关注牛子', user_3, comment='1 和 3 交，max 了')
+    modify_max(2)
+    wrap(user_1, '关注牛子', user_3, comment='1 和 3 交')
+    wrap(user_2, '关注牛子', user_3, comment='2 和 3 交')
+
+    wrap(user_1, '牛子好友', comment='1 查好友列表')
+    wrap(user_2, '牛子好友', comment='2 查好友列表')
+    wrap(user_3, '牛子好友', comment='3 查好友列表')
+
+    # 隔日
+    jump_day(yesterday)
+    wrap(user_1, '牛子', comment='1 隔日')
+    wrap(user_2, '牛子', comment='2 隔日')
+    wrap(user_3, '牛子', comment='3 隔日')
+
+    # 自动友尽
+    data3 = DB.load_data(user_3)
+    data3['length'] = 1000
+    DB.write_data(data3)
+    # 隔日
+    jump_day(yesterday)
+    wrap(user_1, '牛子', comment='1 隔日，自动友尽')
+    wrap(user_2, '牛子', comment='2 隔日，自动友尽')
+    wrap(user_3, '牛子', comment='3 隔日，自动友尽')
+
+    # 自动多人友尽
+    modify_max(6)
+    wrap(user_1, '关注牛子', user_3, comment='1 和 3 交，不成功，没钱')
+    data = DB.load_data(user_1)
+    data['length'] = 20
+    DB.write_data(data)
+    data2 = DB.load_data(user_2)
+    data2['length'] = 1000
+    DB.write_data(data2)
+    wrap(user_1, '关注牛子', user_3, comment='1 和 3 交，成功')
+    # 隔日，自动断绝 2 和 3
+    jump_day(yesterday)
+    wrap(user_1, '牛子', comment='1 隔日，自动断绝 2 和 3')
+    wrap(user_2, '牛子', comment='2 隔日，自动断绝 2 和 3')
+    wrap(user_3, '牛子', comment='3 隔日，自动断绝 2 和 3')
+
+    # ...
 
 if __name__ == '__main__':
     clear_database()
@@ -493,8 +669,12 @@ if __name__ == '__main__':
     if arg('--farm'):
         test_farm()
 
+    # args: --friends
+    if arg('--friends'):
+        test_friends()
+
     # clear log
     if arg('--clear'):
         clear_logger()
 
-    write_snapshot()
+    # write_snapshot()

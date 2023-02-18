@@ -1,6 +1,6 @@
 from .config import Config
 from .db import DB
-from .utils import fixed_two_decimal_digits, ArrowUtil
+from .utils import fixed_two_decimal_digits, ArrowUtil, join
 
 cache = None
 
@@ -14,6 +14,11 @@ class FriendsSystem:
         json = Config.get_config("friends")
         cache = json
         return cache
+
+    @staticmethod
+    def modify_config_in_runtime(data: dict):
+        global cache
+        cache = data
 
     @staticmethod
     def get_friends_data(qq: int):
@@ -31,7 +36,8 @@ class FriendsSystem:
             data["friends_list"] = []
         # search user data and merge
         user_data = DB.load_data(qq)
-        merge = DB.utils.merge_data(user_data, data)
+        info_data = DB.sub_db_info.get_user_info(qq)
+        merge = DB.utils.merge_data(user_data, data, info_data)
         return merge
 
     @classmethod
@@ -45,18 +51,21 @@ class FriendsSystem:
         )
         infos = []
         for user in merge:
-            base_friend_cost = config["cost"]["base"] * user["length"]
-            share_friend_cost = config["cost"]["share"] * user["friends_share_count"]
+            base_friend_cost_percent = config["cost"]["base"]
+            share_friend_cost_percent = config["cost"]["share"] * \
+                user["friends_share_count"]
+            total_cost_percent = base_friend_cost_percent + share_friend_cost_percent
+            total_cost_length = user["length"] * total_cost_percent
             total_cost = fixed_two_decimal_digits(
-                base_friend_cost + share_friend_cost, to_number=True
+                total_cost_length, to_number=True
             )
             info = {
                 "friends_need_cost": total_cost,
                 **user,
             }
             infos.append(info)
-        # sort by cost
-        infos = sorted(infos, key=lambda x: x["friends_need_cost"])
+        # sort by cost desc
+        infos = sorted(infos, key=lambda x: x["friends_need_cost"], reverse=True)
         return infos
 
     @classmethod
@@ -75,7 +84,9 @@ class FriendsSystem:
         infos = cls.get_batch_friends_info_by_qqs(friends_list)
         for info in infos:
             index = infos.index(info)
-            nickname = info.get("latest_speech_nickname", "无名英雄")
+            nickname = info.get("latest_speech_nickname")
+            if not nickname:
+                nickname = '无名英雄'
             cost_daily = info["friends_need_cost"]
             share_count = info["friends_share_count"]
             message_arr.append(
@@ -88,7 +99,8 @@ class FriendsSystem:
         # add friend to qq
         data = DB.sub_db_friends.get_user_data(qq)
         friends_list_str = data["friends_list"]
-        friends_list = friends_list_str.split(",") if len(friends_list_str) != 0 else []
+        friends_list = friends_list_str.split(
+            ",") if len(friends_list_str) != 0 else []
         is_in_list = str(target_qq) in friends_list
         if not is_in_list:
             friends_list.append(str(target_qq))
@@ -133,72 +145,110 @@ class FriendsSystem:
         注意朋友如果不上线（说话），长度不会自动转账，可以一直不说话跑路，上线那一天才会转账或友尽
         """
         friends_data = cls.get_friends_data(qq)
-        is_has_friends = len(friends_data["friends_list"]) > 0
-        if not is_has_friends:
+        is_not_has_friends = len(friends_data["friends_list"]) == 0
+        share_count = friends_data["friends_share_count"]
+        is_not_share = share_count == 0
+        if is_not_has_friends and is_not_share:
             return None
-        # check friends cost
-        latest_pay_time = friends_data["friends_cost_latest_time"]
-        is_need_pay = ArrowUtil.is_date_outed(latest_pay_time)
-        if not is_need_pay:
-            return None
+        # 收款额
+        will_get_length = fixed_two_decimal_digits(
+            friends_data["friends_will_collect_length"], to_number=True
+        )
+        # 有朋友，就有花费
+        if not is_not_has_friends:
+            latest_pay_time = friends_data["friends_cost_latest_time"]
+            is_need_pay = ArrowUtil.is_date_outed(latest_pay_time)
+            if not is_need_pay:
+                return None
+            else:
+                # need pay
+                infos = cls.get_batch_friends_info_by_qqs(
+                    friends_data["friends_list"])
+                origin_length = friends_data["length"] + will_get_length
+                current_has_length = origin_length
+                can_keep_friends_list = []
+                friends_over_list = []
+                # gap days
+                now = ArrowUtil.get_now_time()
+                gap_days = ArrowUtil.get_time_diff_days(now, latest_pay_time)
+                # 由大到小支付
+                for info in infos:
+                    need_pay_length = gap_days * info["friends_need_cost"]
+                    if current_has_length >= need_pay_length:
+                        # can keep
+                        can_keep_friends_list.append(info)
+                        current_has_length -= need_pay_length
+                    else:
+                        # over
+                        friends_over_list.append(info)
+                total_need_cost_length = fixed_two_decimal_digits(
+                    origin_length - current_has_length, to_number=True
+                )
+                income_text = ""
+                if will_get_length > 0:
+                    income_text = f"收入{will_get_length}cm"
+                message_arr = [
+                    join(
+                        [
+                            f"今日朋友费支出{total_need_cost_length}cm",
+                            income_text,
+                            "好幸福。"
+                        ],
+                        '，'
+                    )
+                ]
+                profit = fixed_two_decimal_digits(
+                    will_get_length - total_need_cost_length, to_number=True
+                )
+                # batch pay to every friend
+                for info in can_keep_friends_list:
+                    cls.transfer_length(info["qq"], info["friends_need_cost"])
+                has_over_friends = len(friends_over_list) > 0
+                if has_over_friends:
+                    first_over_friend = friends_over_list[0]
+                    nickname = first_over_friend.get("latest_speech_nickname")
+                    if not nickname:
+                        nickname = '无名英雄'
+                    numbers = len(friends_over_list)
+                    over_text = None
+                    if numbers == 1:
+                        over_text = f"{nickname}已取关你！"
+                    else:
+                        over_text = f"{nickname}等{numbers}人已取关你！"
+                    message_arr.append(
+                        f"“今天的朋友费...”，“土地瓜，还想白嫖我”，因为你付不起朋友费，{over_text}")
+                    for info in friends_over_list:
+                        target_qq = info["qq"]
+                        # batch delete friends_list
+                        is_in_list = target_qq in friends_data["friends_list"]
+                        if is_in_list:
+                            friends_data["friends_list"].remove(target_qq)
+                        # batch delete friends share count
+                        target_friends_data = DB.sub_db_friends.get_user_data(target_qq)
+                        target_friends_data["friends_share_count"] -= 1
+                        DB.sub_db_friends.update_user_data(target_friends_data)
+                # update latest pay time
+                friends_data["friends_cost_latest_time"] = ArrowUtil.get_now_time()
+                # clear friends_will_collect_length
+                friends_data["friends_will_collect_length"] = 0
+                # update latest collect time: 这个字段还没什么用，先保留着吧
+                friends_data["friends_collect_latest_time"] = ArrowUtil.get_now_time()
+                DB.sub_db_friends.update_user_data(friends_data)
+                return {
+                    "message": "\n".join(message_arr),
+                    "profit": profit,  # > 0 or < 0
+                }
         else:
-            # need pay
-            infos = cls.get_batch_friends_info_by_qqs(friends_data["friends_list"])
-            # 收款额
-            will_get_length = fixed_two_decimal_digits(
-                friends_data["friends_will_collect_length"], to_number=True
-            )
-            origin_length = friends_data["length"] + will_get_length
-            current_has_length = origin_length
-            can_keep_friends_list = []
-            friends_over_list = []
-            # gap days
-            now = ArrowUtil.get_now_time()
-            gap_days = ArrowUtil.get_time_diff_days(latest_pay_time, now)
-            # 由大到小支付
-            for info in infos:
-                need_pay_length = gap_days * info["friends_need_cost"]
-                if current_has_length >= need_pay_length:
-                    # can keep
-                    can_keep_friends_list.append(info)
-                    current_has_length -= need_pay_length
-                else:
-                    # over
-                    friends_over_list.append(info)
-            total_need_cost_length = fixed_two_decimal_digits(
-                origin_length - current_has_length, to_number=True
-            )
-            message_arr = [
-                f"今日朋友费支出{total_need_cost_length}cm，收入{will_get_length}cm，好幸福。",
-            ]
-            profit = fixed_two_decimal_digits(
-                will_get_length - total_need_cost_length, to_number=True
-            )
-            # batch pay to every friend
-            for info in can_keep_friends_list:
-                cls.transfer_length(info["qq"], info["friends_need_cost"])
-            has_over_friends = len(friends_over_list) > 0
-            if has_over_friends:
-                first_over_friend = friends_over_list[0]
-                nickname = first_over_friend.get("latest_speech_nickname", "无名英雄")
-                numbers = len(friends_over_list)
-                over_text = None
-                if numbers == 1:
-                    over_text = f"{nickname}已取关你！"
-                else:
-                    over_text = f"{nickname}等{numbers}人已取关你！"
-                message_arr.append(f"“今天的朋友费...”，“土地瓜，还想白嫖我”，因为你付不起朋友费，{over_text}")
-                # batch delete friends
-                for info in friends_over_list:
-                    cls.delete_friends(qq, info["qq"])
-            # update latest pay time
-            friends_data["friends_cost_latest_time"] = ArrowUtil.get_now_time()
-            # clear friends_will_collect_length
-            friends_data["friends_will_collect_length"] = 0
-            # update latest collect time: 这个字段还没什么用，先保留着吧
-            friends_data["friends_collect_latest_time"] = ArrowUtil.get_now_time()
-            DB.sub_db_friends.update_user_data(friends_data)
-            return {
-                "message": "\n".join(message_arr),
-                "profit": profit,  # > 0 or < 0
-            }
+            # 否则，检查有没有收入
+            if will_get_length > 0:
+                # update latest collect time
+                friends_data["friends_collect_latest_time"] = ArrowUtil.get_now_time()
+                # clear friends_will_collect_length
+                friends_data["friends_will_collect_length"] = 0
+                DB.sub_db_friends.update_user_data(friends_data)
+                return {
+                    "message": f"今日朋友费收入{will_get_length}cm，好幸福。",
+                    "profit": will_get_length
+                }
+            else:
+                return None

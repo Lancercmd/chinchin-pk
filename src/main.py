@@ -109,7 +109,7 @@ def message_processor(
     # 初始化数据 - farm
     DB.sub_db_farm.init_user_data(qq)
     # 初始化数据 - friends
-    DB.sub_db_friends.init_user_data(qq)
+    DB.sub_db_friends.init_user_data(qq, at_qq)
 
     # flow context
     ctx = {
@@ -308,7 +308,9 @@ class Chinchin_info:
                 prefix = "🥈"
             elif idx == 3:
                 prefix = "🥉"
-            nickname = user.get('latest_speech_nickname', "无名英雄")
+            nickname = user.get("latest_speech_nickname")
+            if not nickname:
+                nickname = "无名英雄"
             badge = BadgeSystem.get_first_badge_by_badge_string_arr(
                 user.get("badge_ids")
             )
@@ -859,7 +861,9 @@ class Chinchin_friends:
             return send_message(qq, group, join(message_arr, "\n"))
         # immediate pay
         DB.length_decrease(qq, daily_need_cost)
-        nickname = target_friends_data.get("latest_speech_nickname", '无名英雄')
+        nickname = target_friends_data.get("latest_speech_nickname")
+        if not nickname:
+            nickname = "无名英雄"
         message_arr = [
             f"“这是今天的朋友费...”，“要永远在一起喔o(*￣▽￣*)”，你付出了{daily_need_cost}cm，顺利和{nickname}成为了好朋友！",
         ]
@@ -872,6 +876,7 @@ class Chinchin_friends:
 
     @staticmethod
     def entry_friends_delete(ctx: dict):
+        # TODO: 友尽需要收费
         # TODO: 先不支持交友不慎造成的问题，比如交了朋友但是对方退群了，没法 at 他断绝关系了。
         qq = ctx["qq"]
         group = ctx["group"]
@@ -883,7 +888,9 @@ class Chinchin_friends:
             message_arr = ["他不是你的牛友，又开始了是吧。"]
             return send_message(qq, group, join(message_arr, "\n"))
         # 删除朋友
-        nickname = friends_data.get("latest_speech_nickname", '无名英雄')
-        message_arr = [f"我要创造一个所有牛子都受伤的世界...，你们都是我的朋友，但你们也是我的敌人，和{nickname}断绝了关系"]
+        nickname = friends_data.get("latest_speech_nickname")
+        if not nickname:
+            nickname = "无名英雄"
+        message_arr = [f"我要创造一个所有牛子都受伤的世界...，你们都是我的朋友，但也是我的敌人，和{nickname}断绝了关系"]
         FriendsSystem.delete_friends(qq, at_qq)
         return send_message(qq, group, join(message_arr, "\n"))
