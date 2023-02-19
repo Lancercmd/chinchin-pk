@@ -2,7 +2,7 @@ import os
 import time
 from src.db import DB, Sql
 from src.main import message_processor, KEYWORDS
-from src.utils import get_object_values, ArrowUtil, fixed_two_decimal_digits
+from src.utils import get_object_values, ArrowUtil, fixed_two_decimal_digits, arrow_get
 from src.config import Config
 from src.farm import FarmSystem
 from src.friends import FriendsSystem
@@ -415,6 +415,7 @@ def test_farm():
 
     wrap(user_1, '注册牛子', comment='1 注册')
     wrap(user_2, '注册牛子', comment='2 注册')
+    wrap(user_3, '注册牛子', comment='3 注册')
 
     # 查仙境信息
     wrap(user_1, '牛子仙境', comment='1 查仙境信息')
@@ -425,6 +426,21 @@ def test_farm():
     config['can_play_time']['duration'] = {'h': 0, 'm': 0}
     FarmSystem.modify_config_in_runtime(config)
     wrap(user_1, '牛子修炼', comment='1 开始修炼，不在时间内没法修炼')
+
+    # 验证是否生效了 / user_3
+    config = FarmSystem.read_farm_config()
+    today = ArrowUtil.get_now_time()
+    # 往前推 15 小时
+    yesterday = ArrowUtil.get_time_with_shift(today, shift_mins=-1 * 60 * 15)
+    start_time = arrow_get(yesterday).format('HH:00')
+    config['can_play_time']['start'] = start_time
+    config['can_play_time']['duration'] = {'h': 14, 'm': 30}
+    FarmSystem.modify_config_in_runtime(config)
+    wrap(user_3, '牛子修炼', comment='3 开始修炼，不在时间内没法修炼')
+    config = FarmSystem.read_farm_config()
+    config['can_play_time']['duration'] = {'h': 15, 'm': 59}
+    FarmSystem.modify_config_in_runtime(config)
+    wrap(user_3, '牛子修炼', comment='3 开始修炼，可以修炼')
 
     # 可以修炼的时间
     config = FarmSystem.read_farm_config()
