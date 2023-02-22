@@ -159,6 +159,9 @@ def message_processor(
         return
 
     # >>> 检查阶段
+    # 检查长度精度问题
+    DB.make_sure_user_length_not_zero(qq)
+
     # 检查成就
     badge_msg = BadgeSystem.check_whether_get_new_badge(qq)
     if badge_msg:
