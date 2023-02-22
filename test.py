@@ -705,6 +705,17 @@ def test_help():
     wrap(user_1, '牛子帮助', comment='1 查帮助')
 
 
+def check_zero_length_view():
+
+    wrap(user_1, '注册牛子', comment='1 注册')
+
+    data = DB.load_data(user_1)
+    data['length'] = 0.3 - 0.2 - 0.1
+    DB.write_data(data)
+
+    wrap(user_1, '牛子', comment='1 查信息，长度为 0')
+
+
 if __name__ == '__main__':
     clear_database()
 
@@ -743,5 +754,9 @@ if __name__ == '__main__':
     # clear log
     if arg('--clear'):
         clear_logger()
+
+    # args: --zero-length
+    if arg('--zero-length'):
+        check_zero_length_view()
 
     write_snapshot()
