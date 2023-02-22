@@ -507,6 +507,7 @@ def test_friends():
 
     # 交朋友
     wrap(user_1, '关注牛子', comment='1 和 空气 交朋友，没反应')
+    wrap(user_1, '关注牛子', user_1, comment='禁止 和 自己 交朋友')
     data = DB.load_data(user_1)
     data['length'] = 0.9
     DB.write_data(data)

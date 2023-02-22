@@ -32,7 +32,7 @@ KEYWORDS = {
     "help": ["牛子帮助"],
 }
 
-VERSION = '2.6.2'
+VERSION = '2.6.3'
 HELPPER = f"牛了个牛 v{VERSION}\n可用的指令/功能有：\n" + "、".join(
     [
         KEYWORDS.get("sign_up")[0],
@@ -901,6 +901,10 @@ class Chinchin_friends:
         qq = ctx["qq"]
         group = ctx["group"]
         at_qq = ctx["at_qq"]
+        # 不能是自己
+        if qq == at_qq:
+            message_arr = ["无中生友是吧"]
+            return send_message(qq, group, join(message_arr, "\n"))
         config = FriendsSystem.read_config()
         max = config["max"]
         friends_data = FriendsSystem.get_friends_data(qq)
