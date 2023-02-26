@@ -393,10 +393,11 @@ def test_badge():
     wrap(user_3, 'pk', at_qq=user_1, comment='3 pk 1 有加权')
     wrap(user_3, '打胶', at_qq=user_1, comment='3 打胶 1 有加权')
 
-# https://github.com/opq-osc/chinchin-pk/pull/4
-
 
 def pull_4():
+    """
+      https://github.com/opq-osc/chinchin-pk/pull/4
+    """
 
     wrap(user_1, '注册牛子', comment='1 注册')
     wrap(user_2, '注册牛子', comment='2 注册')
@@ -701,9 +702,36 @@ def test_friends():
     wrap(user_1, 'pk', user_2, comment='1 pk 2 ，没加成，因为是朋友')
     wrap(user_1, 'pk', user_3, comment='1 pk 3 ，有 1000 倍加成，胜利')
 
+
 def test_help():
 
     wrap(user_1, '牛子帮助', comment='1 查帮助')
+
+
+def issue_8():
+    """
+      https://github.com/opq-osc/chinchin-pk/issues/8
+    """
+    wrap(user_1, '注册牛子', comment='1 注册')
+    wrap(user_2, '注册牛子', comment='2 注册')
+
+    # get 牛子掠夺者
+    user_2_badge_data = Sql.sub_table_badge.select_single_data(user_2)
+    user_2_badge_data['pk_win_count'] = 50
+    user_2_badge_data['pk_plus_length_total'] = 50
+    Sql.sub_table_badge.update_single_data(user_2_badge_data)
+
+    # get 打胶大师
+    user_2_badge_data = Sql.sub_table_badge.select_single_data(user_2)
+    user_2_badge_data['glue_plus_count'] = 50
+    user_2_badge_data['glue_plus_length_total'] = 100
+    Sql.sub_table_badge.update_single_data(user_2_badge_data)
+
+    wrap(user_2, '牛子', comment='2 查信息，确认获得了两个成就')
+    wrap(user_2, '牛子成就', comment='2 查成就')
+    wrap(user_2, '牛子', comment='2 查牛子')
+    wrap(user_2, '牛子排行', comment='2 查排行')
+    wrap(user_2, 'pk', user_1, comment='2 pk 1')
 
 
 def check_zero_length_view():
@@ -759,5 +787,9 @@ if __name__ == '__main__':
     # args: --zero-length
     if arg('--zero-length'):
         check_zero_length_view()
+
+    # args: --issue-8
+    if arg('--issue-8'):
+        issue_8()
 
     write_snapshot()
