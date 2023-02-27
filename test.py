@@ -721,15 +721,21 @@ def issue_8():
     user_2_badge_data['pk_plus_length_total'] = 50
     Sql.sub_table_badge.update_single_data(user_2_badge_data)
 
+    wrap(user_2, '牛子', comment='2 查信息，获得一个成就')
+    wrap(user_2, '牛子成就', comment='2 查成就')
+    wrap(user_2, '牛子', comment='2 查牛子')
+
     # get 打胶大师
     user_2_badge_data = Sql.sub_table_badge.select_single_data(user_2)
     user_2_badge_data['glue_plus_count'] = 50
     user_2_badge_data['glue_plus_length_total'] = 100
     Sql.sub_table_badge.update_single_data(user_2_badge_data)
 
-    wrap(user_2, '牛子', comment='2 查信息，确认获得了两个成就')
+    wrap(user_2, '牛子', comment='2 查信息，又获得一个成就')
     wrap(user_2, '牛子成就', comment='2 查成就')
     wrap(user_2, '牛子', comment='2 查牛子')
+
+    # 正常执行，没有预期外消息
     wrap(user_2, '牛子排行', comment='2 查排行')
     wrap(user_2, 'pk', user_1, comment='2 pk 1')
 
